@@ -5,12 +5,12 @@ xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
 http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<servlet>
-		<servlet-name>PTWGame</servlet-name>
-		<servlet-class>com.meiste.greg.ptwgame.PTWGameServlet</servlet-class>
+		<servlet-name>Questions</servlet-name>
+		<servlet-class>com.meiste.greg.ptwgame.QuestionsServlet</servlet-class>
 	</servlet>
 	<servlet-mapping>
-		<servlet-name>PTWGame</servlet-name>
-		<url-pattern>/ptwgame</url-pattern>
+		<servlet-name>Questions</servlet-name>
+		<url-pattern>/questions</url-pattern>
 	</servlet-mapping>
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
