@@ -8,9 +8,17 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-name>Questions</servlet-name>
 		<servlet-class>com.meiste.greg.ptwgame.QuestionsServlet</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>Suggest</servlet-name>
+		<servlet-class>com.meiste.greg.ptwgame.SuggestServlet</servlet-class>
+	</servlet>
 	<servlet-mapping>
 		<servlet-name>Questions</servlet-name>
 		<url-pattern>/questions</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Suggest</servlet-name>
+		<url-pattern>/suggest</url-pattern>
 	</servlet-mapping>
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
