@@ -12,6 +12,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-name>Suggest</servlet-name>
 		<servlet-class>com.meiste.greg.ptwgame.SuggestServlet</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>Standings</servlet-name>
+		<servlet-class>com.meiste.greg.ptwgame.StandingsServlet</servlet-class>
+	</servlet>
 	<servlet-mapping>
 		<servlet-name>Questions</servlet-name>
 		<url-pattern>/questions</url-pattern>
@@ -19,6 +23,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<servlet-mapping>
 		<servlet-name>Suggest</servlet-name>
 		<url-pattern>/suggest</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Standings</servlet-name>
+		<url-pattern>/standings</url-pattern>
 	</servlet-mapping>
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
