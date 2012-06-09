@@ -40,18 +40,20 @@ public class QuestionsServlet extends HttpServlet {
         User user = userService.getCurrentUser();
 
         if (user != null) {
-            // TODO: get the actual next race ID from schedule
-            int race_id = 18;
+            Race race = Races.getNext(false, true);
+            if ((race != null) && race.inProgress()) {
+                RaceQuestions q = mQuestionsDao.get(race.getId());
+                if (q == null) {
+                    log.warning("No questions found for race " + race.getId() + "! Using default questions.");
+                    q = new RaceQuestions(race.getId());
+                    mQuestionsDao.put(q);
+                }
 
-            RaceQuestions q = mQuestionsDao.get(race_id);
-            if (q == null) {
-                log.warning("No questions found! Using default questions.");
-                q = new RaceQuestions(race_id);
-                mQuestionsDao.put(q);
+                resp.setContentType("text/plain");
+                resp.getWriter().print(q.toJson());
+            } else {
+                resp.sendError(405);
             }
-
-            resp.setContentType("text/plain");
-            resp.getWriter().print(q.toJson());
         } else {
             resp.sendRedirect(userService.createLoginURL(req.getRequestURI()));
         }
