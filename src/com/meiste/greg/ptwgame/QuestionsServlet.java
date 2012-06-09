@@ -17,6 +17,7 @@
 package com.meiste.greg.ptwgame;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -25,18 +26,32 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
-import com.google.gson.Gson;
 
 @SuppressWarnings("serial")
 public class QuestionsServlet extends HttpServlet {
+    private static final Logger log = Logger.getLogger(QuestionsServlet.class.getName());
+
+    private final ObjectifyDao<RaceQuestions> mQuestionsDao =
+            new ObjectifyDao<RaceQuestions>(RaceQuestions.class);
+
     public void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         UserService userService = UserServiceFactory.getUserService();
         User user = userService.getCurrentUser();
 
         if (user != null) {
+            // TODO: get the actual next race ID from schedule
+            int race_id = 18;
+
+            RaceQuestions q = mQuestionsDao.get(race_id);
+            if (q == null) {
+                log.warning("No questions found! Using default questions.");
+                q = new RaceQuestions(race_id);
+                mQuestionsDao.put(q);
+            }
+
             resp.setContentType("text/plain");
-            resp.getWriter().print(new RaceQuestions().toJson());
+            resp.getWriter().print(q.toJson());
         } else {
             resp.sendRedirect(userService.createLoginURL(req.getRequestURI()));
         }
@@ -52,18 +67,6 @@ public class QuestionsServlet extends HttpServlet {
             resp.getWriter().print(req.getReader().readLine());
         } else {
             resp.sendRedirect(userService.createLoginURL(req.getRequestURI()));
-        }
-    }
-
-    private class RaceQuestions {
-        private String q2 = "Which manufacturer will have more cars finish in the top 10?";
-        private String[] a2 = {"Chevrolet", "Dodge", "Ford", "Toyota"};
-        private String q3 = "Will there be a new points leader after the race?";
-        private String[] a3 = {"Yes", "No"};
-
-        public String toJson() {
-            Gson gson = new Gson();
-            return gson.toJson(this);
         }
     }
 }
