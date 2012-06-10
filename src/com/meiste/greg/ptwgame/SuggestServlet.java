@@ -22,11 +22,29 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.users.User;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
+
 @SuppressWarnings("serial")
 public class SuggestServlet extends HttpServlet {
+    private final ObjectifyDao<Suggestion> mSuggestDao =
+            new ObjectifyDao<Suggestion>(Suggestion.class);
+
     public void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
-        resp.setContentType("text/plain");
-        resp.getWriter().print(req.getReader().readLine());
+        Race race = Races.getNext(false, false);
+
+        if (race != null) {
+            UserService userService = UserServiceFactory.getUserService();
+            User user = userService.getCurrentUser();
+            String json = req.getReader().readLine();
+
+            mSuggestDao.put(new Suggestion(race.getId(), user, json));
+            resp.setContentType("text/plain");
+            resp.getWriter().print(json);
+        } else {
+            resp.sendError(405);
+        }
     }
 }

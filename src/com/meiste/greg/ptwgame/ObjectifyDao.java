@@ -36,6 +36,7 @@ public class ObjectifyDao<T extends DatastoreObject> extends DAOBase {
     static {
         ObjectifyService.register(RaceAnswers.class);
         ObjectifyService.register(RaceQuestions.class);
+        ObjectifyService.register(Suggestion.class);
     }
 
     protected Class<T> mClazz;
