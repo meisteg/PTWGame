@@ -33,6 +33,8 @@ public class QuestionsServlet extends HttpServlet {
 
     private final ObjectifyDao<RaceQuestions> mQuestionsDao =
             new ObjectifyDao<RaceQuestions>(RaceQuestions.class);
+    private final ObjectifyDao<RaceAnswers> mAnswersDao =
+            new ObjectifyDao<RaceAnswers>(RaceAnswers.class);
 
     public void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
@@ -65,8 +67,21 @@ public class QuestionsServlet extends HttpServlet {
         User user = userService.getCurrentUser();
 
         if (user != null) {
-            resp.setContentType("text/plain");
-            resp.getWriter().print(req.getReader().readLine());
+            Race race = Races.getNext(false, true);
+            if ((race != null) && race.inProgress()) {
+                RaceAnswers a = mAnswersDao.getByExample(new RaceAnswers(race.getId(), user));
+                if (a == null) {
+                    a = RaceAnswers.fromJson(req.getReader().readLine());
+                    a.setUserId(user);
+                    a.setRaceId(race.getId());
+                    mAnswersDao.put(a);
+                }
+
+                resp.setContentType("text/plain");
+                resp.getWriter().print(a.toJson());
+            } else {
+                resp.sendError(405);
+            }
         } else {
             resp.sendRedirect(userService.createLoginURL(req.getRequestURI()));
         }
