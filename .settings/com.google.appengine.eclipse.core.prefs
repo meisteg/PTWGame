@@ -3,3 +3,5 @@ filesCopiedToWebInfLib=datanucleus-core-1.1.5.jar|geronimo-jta_1.1_spec-1.1.1.ja
 gaeDeployDialogSettings=
 gaeHrdEnabled=true
 gaeIsEclipseDefaultInstPath=true
+googleCloudSqlEnabled=false
+localDevMySqlEnabled=true
