@@ -18,8 +18,10 @@ package com.meiste.greg.ptwgame;
 
 import com.google.appengine.api.users.User;
 import com.google.gson.Gson;
+import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Unindexed;
 
+@Cached
 public class Suggestion extends DatastoreObject {
     public String mUserId;
 
