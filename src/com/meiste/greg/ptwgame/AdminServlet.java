@@ -25,12 +25,17 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
+
 @SuppressWarnings("serial")
 public class AdminServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(AdminServlet.class.getName());
 
     private final ObjectifyDao<RaceQuestions> mQuestionsDao =
             new ObjectifyDao<RaceQuestions>(RaceQuestions.class);
+    private final ObjectifyDao<RaceCorrectAnswers> mAnswersDao =
+            new ObjectifyDao<RaceCorrectAnswers>(RaceCorrectAnswers.class);
 
     public void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
@@ -43,8 +48,8 @@ public class AdminServlet extends HttpServlet {
 
         if (op.equals("questions")) {
             submitQuestions(req);
-        } else if (op == "answers") {
-            // TODO: Store race answers
+        } else if (op.equals("answers")) {
+            submitAnswers(req);
         }
 
         resp.sendRedirect("/admin.jsp");
@@ -85,5 +90,28 @@ public class AdminServlet extends HttpServlet {
         } else {
             log.warning("Race in progess! Questions not set.");
         }
+    }
+
+    private void submitAnswers(HttpServletRequest req) {
+        Race race = Race.getInstance(Integer.parseInt(req.getParameter("race_id")));
+        if (race.isFuture()) {
+            log.warning("Race not finished! Answers not set.");
+            return;
+        }
+
+        RaceCorrectAnswers a = mAnswersDao.get(race.getId());
+        if (a != null) {
+            log.warning("Race already has answers in database! Answers not set.");
+            return;
+        }
+
+        UserService userService = UserServiceFactory.getUserService();
+        a = new RaceCorrectAnswers(race.getId(), userService.getCurrentUser());
+        a.a1 = Integer.parseInt(req.getParameter("a1"));
+        a.a2 = Integer.parseInt(req.getParameter("a2"));
+        a.a3 = Integer.parseInt(req.getParameter("a3"));
+        a.a4 = Integer.parseInt(req.getParameter("a4"));
+        a.a5 = Integer.parseInt(req.getParameter("a5"));
+        mAnswersDao.put(a);
     }
 }

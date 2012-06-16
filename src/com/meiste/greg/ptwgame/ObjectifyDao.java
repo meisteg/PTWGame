@@ -35,6 +35,7 @@ public class ObjectifyDao<T extends DatastoreObject> extends DAOBase {
 
     static {
         ObjectifyService.register(RaceAnswers.class);
+        ObjectifyService.register(RaceCorrectAnswers.class);
         ObjectifyService.register(RaceQuestions.class);
         ObjectifyService.register(Suggestion.class);
     }
@@ -54,6 +55,12 @@ public class ObjectifyDao<T extends DatastoreObject> extends DAOBase {
         q.filter("mYear", year);
         q.filter("mRaceId", race_id);
         return q.get();
+    }
+
+    public Iterable<T> getAll() {
+        Query<T> q = ofy().query(mClazz);
+        q.filter("mYear", Calendar.getInstance().get(Calendar.YEAR));
+        return q.fetch();
     }
 
     public Key<T> put(T entity) throws IllegalStateException {
