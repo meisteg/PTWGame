@@ -26,6 +26,8 @@ import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 
 @SuppressWarnings("serial")
 public class StandingsServlet extends HttpServlet {
@@ -43,38 +45,26 @@ public class StandingsServlet extends HttpServlet {
     }
 
     @SuppressWarnings("unused")
-    private class Player {
-        private String name;
-        private int rank;
-        private int points;
-        private int races;
-        private int wins;
-
-        public Player(String n, int r, int p, int s, int w) {
-            name = n;
-            rank = r;
-            points = p;
-            races = s;
-            wins = w;
-        }
-    }
-
-    @SuppressWarnings("unused")
     private class Standings {
-        private int race_id = 13;
+        @Expose
+        private int race_id = 17;
+        @Expose
         private Player[] standings = new Player[25];
+        @Expose
         private Player self;
 
         public Standings(User user) {
-            self = new Player(user.getNickname(), 42, 125, 11, 1);
+            self = new Player(42, 125, 11, 1);
 
             for (int i = 0; i < standings.length; i++) {
-                standings[i] = new Player("Player " + (i+1), i+1, 500-(i*5), 11, 3);
+                standings[i] = new Player(i+1, 500-(i*5), 11, 3);
             }
         }
 
         public String toJson() {
-            return new Gson().toJson(this);
+            // Need to exclude fields without Expose for Player class
+            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+            return gson.toJson(this);
         }
     }
 }

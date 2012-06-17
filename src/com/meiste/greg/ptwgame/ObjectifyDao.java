@@ -34,6 +34,7 @@ public class ObjectifyDao<T extends DatastoreObject> extends DAOBase {
     private static final int BAD_MODIFIERS = Modifier.FINAL | Modifier.STATIC | Modifier.TRANSIENT;
 
     static {
+        ObjectifyService.register(Player.class);
         ObjectifyService.register(RaceAnswers.class);
         ObjectifyService.register(RaceCorrectAnswers.class);
         ObjectifyService.register(RaceQuestions.class);
