@@ -20,6 +20,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-name>Admin</servlet-name>
 		<servlet-class>com.meiste.greg.ptwgame.AdminServlet</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>StandingsCalc</servlet-name>
+		<servlet-class>com.meiste.greg.ptwgame.StandingsCalcServlet</servlet-class>
+	</servlet>
 	
 	<servlet-mapping>
 		<servlet-name>Questions</servlet-name>
@@ -37,6 +41,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-name>Admin</servlet-name>
 		<url-pattern>/admin</url-pattern>
 	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>StandingsCalc</servlet-name>
+		<url-pattern>/tasks/standings</url-pattern>
+	</servlet-mapping>
 	
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
@@ -53,6 +61,14 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<security-constraint>
 		<web-resource-collection>
 			<url-pattern>/admin</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>admin</role-name>
+		</auth-constraint>
+	</security-constraint>
+	<security-constraint>
+		<web-resource-collection>
+			<url-pattern>/tasks/*</url-pattern>
 		</web-resource-collection>
 		<auth-constraint>
 			<role-name>admin</role-name>

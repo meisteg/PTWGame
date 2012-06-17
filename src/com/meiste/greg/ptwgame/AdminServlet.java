@@ -16,6 +16,8 @@
 
 package com.meiste.greg.ptwgame;
 
+import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.taskqueue.Queue;
+import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 
@@ -113,5 +117,9 @@ public class AdminServlet extends HttpServlet {
         a.a4 = Integer.parseInt(req.getParameter("a4"));
         a.a5 = Integer.parseInt(req.getParameter("a5"));
         mAnswersDao.put(a);
+
+        // Kick off task to calculate new standings
+        Queue queue = QueueFactory.getDefaultQueue();
+        queue.add(withUrl("/tasks/standings").param("race_id", String.valueOf(race.getId())));
     }
 }
