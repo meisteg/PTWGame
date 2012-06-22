@@ -21,6 +21,7 @@ import java.lang.reflect.Modifier;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.persistence.Embedded;
 import javax.persistence.Transient;
@@ -64,6 +65,18 @@ public class ObjectifyDao<T extends DatastoreObject> extends DAOBase {
         return q.fetch();
     }
 
+    public List<T> getList(String order, int limit) {
+        Query<T> q = ofy().query(mClazz);
+        q.filter("mYear", Calendar.getInstance().get(Calendar.YEAR));
+        if (order != null) {
+            q.order(order);
+            q.filter((order.startsWith("-") ? order.substring(1) : order) + " !=", null);
+        }
+        if (limit > 0)
+            q.limit(limit);
+        return q.list();
+    }
+
     public Key<T> put(T entity) throws IllegalStateException {
         if (entity.getRaceId() < 0)
             throw new IllegalStateException("Race ID is not set!");
@@ -71,8 +84,21 @@ public class ObjectifyDao<T extends DatastoreObject> extends DAOBase {
         return ofy().put(entity);
     }
 
-    public T getByExample(T exampleObj)
-    {
+    public T getByProperty(String propName, Object propValue) {
+        Query<T> q = ofy().query(mClazz);
+        q.filter("mYear", Calendar.getInstance().get(Calendar.YEAR));
+        q.filter(propName, propValue);
+        return q.get();
+    }
+
+    public T getByPropertyMax(String propName) {
+        Query<T> q = ofy().query(mClazz);
+        q.filter("mYear", Calendar.getInstance().get(Calendar.YEAR));
+        q.order("-" + propName);
+        return q.get();
+    }
+
+    public T getByExample(T exampleObj) {
         Query<T> queryByExample = buildQueryByExample(exampleObj);
         Iterable<T> iterableResults = queryByExample.fetch();
         Iterator<T> i = iterableResults.iterator();

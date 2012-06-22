@@ -17,6 +17,8 @@
 package com.meiste.greg.ptwgame;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -31,6 +33,13 @@ import com.google.gson.annotations.Expose;
 
 @SuppressWarnings("serial")
 public class StandingsServlet extends HttpServlet {
+    private static final Logger log = Logger.getLogger(StandingsServlet.class.getName());
+
+    private final ObjectifyDao<RaceCorrectAnswers> mCorrectAnswersDao =
+            new ObjectifyDao<RaceCorrectAnswers>(RaceCorrectAnswers.class);
+    private final ObjectifyDao<Player> mPlayerDao =
+            new ObjectifyDao<Player>(Player.class);
+
     public void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         UserService userService = UserServiceFactory.getUserService();
@@ -44,21 +53,28 @@ public class StandingsServlet extends HttpServlet {
         }
     }
 
-    @SuppressWarnings("unused")
     private class Standings {
         @Expose
-        private int race_id = 17;
+        private int race_id = 0;
+        @SuppressWarnings("unused")
         @Expose
-        private Player[] standings = new Player[25];
+        private List<Player> standings;
         @Expose
         private Player self;
 
         public Standings(User user) {
-            self = new Player(42, 125, 11, 1);
+            RaceCorrectAnswers a = mCorrectAnswersDao.getByPropertyMax("mRaceId");
+            if (a != null)
+                race_id = a.getRaceId();
 
-            for (int i = 0; i < standings.length; i++) {
-                standings[i] = new Player(i+1, 500-(i*5), 11, 3);
+            self = mPlayerDao.getByProperty("mUserId", user.getUserId());
+            if (self == null) {
+                log.info("User " + user + " not found in standings. Creating player...");
+                self = new Player(race_id, user);
+                mPlayerDao.put(self);
             }
+
+            standings = mPlayerDao.getList("rank", 25);
         }
 
         public String toJson() {

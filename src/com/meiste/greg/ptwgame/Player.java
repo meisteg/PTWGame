@@ -44,12 +44,12 @@ public class Player extends DatastoreObject {
     public Player() {
     }
 
-    // TODO: Remove this constructor once Standings pulls players from database
-    public Player(int r, int p, int s, int w) {
-        rank = r;
-        points = p;
-        races = s;
-        wins = w;
+    public Player(int race_id, User user) {
+        super(race_id);
+        setUserId(user);
+
+        // Do not set rank. A null rank indicates "not ranked".
+        points = races = wins = 0;
     }
 
     public void setUserId(User user) {
