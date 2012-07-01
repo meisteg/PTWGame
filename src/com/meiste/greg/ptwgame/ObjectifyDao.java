@@ -59,9 +59,11 @@ public class ObjectifyDao<T extends DatastoreObject> extends DAOBase {
         return q.get();
     }
 
-    public Iterable<T> getAll() {
+    public Iterable<T> getAll(int race_id) {
         Query<T> q = ofy().query(mClazz);
         q.filter("mYear", Calendar.getInstance().get(Calendar.YEAR));
+        if (race_id >= 0)
+            q.filter("mRaceId", race_id);
         return q.fetch();
     }
 
@@ -74,6 +76,15 @@ public class ObjectifyDao<T extends DatastoreObject> extends DAOBase {
         }
         if (limit > 0)
             q.limit(limit);
+        return q.list();
+    }
+
+    public List<T> getList(String... orders) {
+        Query<T> q = ofy().query(mClazz);
+        q.filter("mYear", Calendar.getInstance().get(Calendar.YEAR));
+        for (String order : orders) {
+            q.order(order);
+        }
         return q.list();
     }
 

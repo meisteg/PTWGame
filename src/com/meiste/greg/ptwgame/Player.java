@@ -52,6 +52,14 @@ public class Player extends DatastoreObject {
         points = races = wins = 0;
     }
 
+    public Player(int race_id, String user_id) {
+        super(race_id);
+        mUserId = user_id;
+
+        // Do not set rank. A null rank indicates "not ranked".
+        points = races = wins = 0;
+    }
+
     public void setUserId(User user) {
         mUserId = user.getUserId();
     }
