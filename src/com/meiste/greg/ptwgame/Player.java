@@ -27,7 +27,7 @@ public class Player extends DatastoreObject {
 
     @Unindexed
     @Expose
-    public String name = "<Private>";
+    public String name;
 
     @Expose
     public Integer rank;
