@@ -53,6 +53,56 @@ public class StandingsServlet extends HttpServlet {
         }
     }
 
+    public void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        UserService userService = UserServiceFactory.getUserService();
+        User user = userService.getCurrentUser();
+
+        if (user != null) {
+            Player self = mPlayerDao.getByProperty("mUserId", user.getUserId());
+            if (self != null) {
+                String json = req.getReader().readLine();
+                String newName = null;
+
+                if (json != null)
+                    newName = new Gson().fromJson(json, String.class);
+
+                // Limit the input to 5-20 characters. Done here in addition to the
+                // app because someone can and will try to submit without the app.
+                if (newName != null)
+                    newName = newName.substring(0, Math.min(20, newName.length()));
+                if ((newName != null) && (newName.length() < 5))
+                    newName = self.name;
+
+                if (newName != null) {
+                    // No special characters allowed
+                    for (int i = 0; i < newName.length(); i++) {
+                        if (!Character.isLetterOrDigit(newName.charAt(i))) {
+                            newName = self.name;
+                            break;
+                        }
+                    }
+                }
+
+                if (newName != null) {
+                    // Verify name not taken by someone else
+                    Player other = mPlayerDao.getByProperty("name", newName);
+                    if ((other != null) && !other.mUserId.equals(self.mUserId)){
+                        newName = self.name;
+                    }
+                }
+
+                self.name = newName;
+                mPlayerDao.put(self);
+                log.info(user.getEmail() + " changed player name to " + newName);
+
+                doGet(req, resp);
+            } else
+                resp.sendError(405);
+        } else
+            resp.sendError(405);
+    }
+
     private class Standings {
         @Expose
         private int race_id = 0;

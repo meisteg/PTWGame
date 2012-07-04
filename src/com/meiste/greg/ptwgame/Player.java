@@ -19,13 +19,11 @@ package com.meiste.greg.ptwgame;
 import com.google.appengine.api.users.User;
 import com.google.gson.annotations.Expose;
 import com.googlecode.objectify.annotation.Cached;
-import com.googlecode.objectify.annotation.Unindexed;
 
 @Cached
 public class Player extends DatastoreObject {
     public String mUserId;
 
-    @Unindexed
     @Expose
     public String name;
 
