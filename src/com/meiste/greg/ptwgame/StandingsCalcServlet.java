@@ -47,6 +47,12 @@ public class StandingsCalcServlet extends HttpServlet {
             return;
         }
 
+        // Need to reset points if Chase is starting. Chicagoland is 27th
+        // points race, but 31st race of season when counting exhibitions.
+        if (race_id == 31) {
+            startChase();
+        }
+
         Iterable<RaceAnswers> submissions = mAnswersDao.getAll(race_id);
         for (RaceAnswers a : submissions) {
             Player player = mPlayerDao.getByProperty("mUserId", a.mUserId);
@@ -80,5 +86,45 @@ public class StandingsCalcServlet extends HttpServlet {
             player.rank = rank++;
             mPlayerDao.put(player);
         }
+    }
+
+    private void startChase() {
+        log.info("The Chase begins now!");
+
+        List<Player> standings = mPlayerDao.getList("rank", 20);
+        Player[] wildcards = new Player[2];
+
+        // Start by assuming 11th and 12th (counting from zero!) in standings
+        // are the wild cards
+        if (standings.get(10).wins >= standings.get(11).wins) {
+            wildcards[0] = standings.get(10);
+            wildcards[1] = standings.get(11);
+        } else {
+            wildcards[0] = standings.get(11);
+            wildcards[1] = standings.get(10);
+        }
+
+        // Then, check 13th - 20th to see if they have more wins
+        for (int i = 12; i < standings.size(); ++i) {
+            if (standings.get(i).wins > wildcards[0].wins) {
+                wildcards[1] = wildcards[0];
+                wildcards[0] = standings.get(i);
+            } else if (standings.get(i).wins > wildcards[1].wins) {
+                wildcards[1] = standings.get(i);
+            }
+        }
+
+        // Reset points for Top 10
+        for (int i = 0; i < 10; ++i) {
+            standings.get(i).points = 5000 + (standings.get(i).wins * 10);
+            mPlayerDao.put(standings.get(i));
+        }
+
+        // Reset points for two wildcards
+        wildcards[0].points = wildcards[1].points = 5000;
+        mPlayerDao.put(wildcards[0]);
+        mPlayerDao.put(wildcards[1]);
+
+        // Done! No need to reset rank since regular scoring will handle it
     }
 }
