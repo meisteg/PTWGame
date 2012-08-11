@@ -99,8 +99,9 @@ public class StandingsServlet extends HttpServlet {
                 doGet(req, resp);
             } else
                 resp.sendError(405);
-        } else
-            resp.sendError(405);
+        } else {
+            resp.sendRedirect(userService.createLoginURL(req.getRequestURI()));
+        }
     }
 
     private class Standings {
