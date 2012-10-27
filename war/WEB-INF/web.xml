@@ -21,6 +21,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-class>com.meiste.greg.ptwgame.StandingsServlet</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>History</servlet-name>
+		<servlet-class>com.meiste.greg.ptwgame.HistoryServlet</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>Admin</servlet-name>
 		<servlet-class>com.meiste.greg.ptwgame.AdminServlet</servlet-class>
 	</servlet>
@@ -44,6 +48,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<servlet-mapping>
 		<servlet-name>Standings</servlet-name>
 		<url-pattern>/standings</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>History</servlet-name>
+		<url-pattern>/history</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>Admin</servlet-name>

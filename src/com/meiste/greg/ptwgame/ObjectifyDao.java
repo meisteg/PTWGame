@@ -67,6 +67,13 @@ public class ObjectifyDao<T extends DatastoreObject> extends DAOBase {
         return q.fetch();
     }
 
+    public List<T> getAllForUser(String user_id) {
+        Query<T> q = ofy().query(mClazz);
+        q.filter("mYear", Calendar.getInstance().get(Calendar.YEAR));
+        q.filter("mUserId", user_id);
+        return q.list();
+    }
+
     public List<T> getList(String order, int limit) {
         Query<T> q = ofy().query(mClazz);
         q.filter("mYear", Calendar.getInstance().get(Calendar.YEAR));
