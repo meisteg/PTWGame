@@ -30,7 +30,7 @@ public class RaceQuestions extends DatastoreObject {
 
     @Unindexed
     @Expose
-    private String[] a2 = {"Chevrolet", "Dodge", "Ford", "Toyota"};
+    private String[] a2 = {"Chevrolet", "Ford", "Toyota"};
 
     @Unindexed
     @Expose
