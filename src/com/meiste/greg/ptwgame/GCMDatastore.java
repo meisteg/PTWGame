@@ -174,6 +174,7 @@ public final class GCMDatastore {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private static Entity findDeviceByRegId(String regId) {
         Query query = new Query(DEVICE_TYPE)
         .addFilter(DEVICE_REG_ID_PROPERTY, FilterOperator.EQUAL, regId);
