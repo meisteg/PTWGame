@@ -32,12 +32,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
-/**
- * Simple implementation of a data store using standard Java collections.
- * <p>
- * This class is neither persistent (it will lost the data when the app is
- * restarted) nor thread safe.
- */
 public final class GCMDatastore {
 
     static final int MULTICAST_SIZE = 1000;
@@ -70,7 +64,7 @@ public final class GCMDatastore {
         try {
             Entity entity = findDeviceByRegId(regId);
             if (entity != null) {
-                logger.fine(regId + " is already registered; ignoring.");
+                logger.info(regId + " is already registered; ignoring.");
                 return;
             }
             entity = new Entity(DEVICE_TYPE);
@@ -113,21 +107,8 @@ public final class GCMDatastore {
      */
     public static void updateRegistration(String oldId, String newId) {
         logger.info("Updating " + oldId + " to " + newId);
-        Transaction txn = datastore.beginTransaction();
-        try {
-            Entity entity = findDeviceByRegId(oldId);
-            if (entity == null) {
-                logger.warning("No device for registration id " + oldId);
-                return;
-            }
-            entity.setProperty(DEVICE_REG_ID_PROPERTY, newId);
-            datastore.put(entity);
-            txn.commit();
-        } finally {
-            if (txn.isActive()) {
-                txn.rollback();
-            }
-        }
+        unregister(oldId);
+        register(newId);
     }
 
     /**
@@ -183,6 +164,11 @@ public final class GCMDatastore {
         Entity entity = null;
         if (!entities.isEmpty()) {
             entity = entities.get(0);
+        }
+        int size = entities.size();
+        if (size > 0) {
+            logger.severe(
+                    "Found " + size + " entities for regId " + regId + ": " + entities);
         }
         return entity;
     }
