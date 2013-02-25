@@ -112,7 +112,7 @@ public class SendMessageServlet extends GCMBaseServlet {
             HttpServletResponse resp) {
         // Recover registration ids from datastore
         List<String> regIds = GCMDatastore.getMulticast(multicastKey);
-        Message message = new Message.Builder().build();
+        Message message = new Message.Builder().collapseKey("ptw_sync").build();
         MulticastResult multicastResult;
         try {
             multicastResult = sender.sendNoRetry(message, regIds);
