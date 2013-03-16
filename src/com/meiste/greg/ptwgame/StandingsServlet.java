@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012-2013 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,10 +40,11 @@ public class StandingsServlet extends HttpServlet {
     private final ObjectifyDao<Player> mPlayerDao =
             new ObjectifyDao<Player>(Player.class);
 
-    public void doGet(HttpServletRequest req, HttpServletResponse resp)
+    @Override
+    public void doGet(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
-        UserService userService = UserServiceFactory.getUserService();
-        User user = userService.getCurrentUser();
+        final UserService userService = UserServiceFactory.getUserService();
+        final User user = userService.getCurrentUser();
 
         if (user != null) {
             resp.setContentType("text/plain");
@@ -53,15 +54,16 @@ public class StandingsServlet extends HttpServlet {
         }
     }
 
-    public void doPost(HttpServletRequest req, HttpServletResponse resp)
+    @Override
+    public void doPost(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
-        UserService userService = UserServiceFactory.getUserService();
-        User user = userService.getCurrentUser();
+        final UserService userService = UserServiceFactory.getUserService();
+        final User user = userService.getCurrentUser();
 
         if (user != null) {
-            Player self = mPlayerDao.getByProperty("mUserId", user.getUserId());
+            final Player self = mPlayerDao.getByProperty("mUserId", user.getUserId());
             if (self != null) {
-                String json = req.getReader().readLine();
+                final String json = req.getReader().readLine();
                 String newName = null;
 
                 if (json != null)
@@ -86,7 +88,7 @@ public class StandingsServlet extends HttpServlet {
 
                 if (newName != null) {
                     // Verify name not taken by someone else
-                    Player other = mPlayerDao.getByProperty("name", newName);
+                    final Player other = mPlayerDao.getByProperty("name", newName);
                     if ((other != null) && !other.mUserId.equals(self.mUserId)){
                         newName = self.name;
                     }
@@ -107,14 +109,13 @@ public class StandingsServlet extends HttpServlet {
     private class Standings {
         @Expose
         private int race_id = 0;
-        @SuppressWarnings("unused")
         @Expose
-        private List<Player> standings;
+        private final List<Player> standings;
         @Expose
         private Player self;
 
-        public Standings(User user) {
-            RaceCorrectAnswers a = mCorrectAnswersDao.getByPropertyMax("mRaceId");
+        public Standings(final User user) {
+            final RaceCorrectAnswers a = mCorrectAnswersDao.getByPropertyMax("mRaceId");
             if (a != null)
                 race_id = a.getRaceId();
 
@@ -130,7 +131,7 @@ public class StandingsServlet extends HttpServlet {
 
         public String toJson() {
             // Need to exclude fields without Expose for Player class
-            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+            final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
             return gson.toJson(this);
         }
     }
