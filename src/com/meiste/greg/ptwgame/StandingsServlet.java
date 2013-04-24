@@ -33,12 +33,16 @@ import com.google.gson.annotations.Expose;
 
 @SuppressWarnings("serial")
 public class StandingsServlet extends HttpServlet {
+    private static final int STANDINGS_TOPX = 25;
+
     private static final Logger log = Logger.getLogger(StandingsServlet.class.getName());
 
     private final ObjectifyDao<RaceCorrectAnswers> mCorrectAnswersDao =
             new ObjectifyDao<RaceCorrectAnswers>(RaceCorrectAnswers.class);
     private final ObjectifyDao<Player> mPlayerDao =
             new ObjectifyDao<Player>(Player.class);
+    private final ObjectifyDao<FriendLink> mFriendLinkDao =
+            new ObjectifyDao<FriendLink>(FriendLink.class);
 
     @Override
     public void doGet(final HttpServletRequest req, final HttpServletResponse resp)
@@ -126,7 +130,37 @@ public class StandingsServlet extends HttpServlet {
                 mPlayerDao.put(self);
             }
 
-            standings = mPlayerDao.getList("rank", 25);
+            standings = mPlayerDao.getList("rank", STANDINGS_TOPX);
+
+            final List<FriendLink> fLinks = mFriendLinkDao.getAllForUser(user.getUserId());
+            for (final FriendLink fLink : fLinks) {
+                final Player friend = mPlayerDao.getByProperty("mUserId", fLink.mFriendUserId);
+                if (friend == null) {
+                    mFriendLinkDao.delete(fLink);
+                    continue;
+                }
+
+                if (friend.rank != null) {
+                    if (friend.rank <= STANDINGS_TOPX) {
+                        standings.get(friend.rank - 1).friend = true;
+                    } else {
+                        friend.friend = true;
+                        int i;
+                        for (i = STANDINGS_TOPX; i < standings.size(); ++i) {
+                            if ((standings.get(i).rank == null) || (standings.get(i).rank > friend.rank)) {
+                                standings.add(i, friend);
+                                break;
+                            }
+                        }
+                        if (i >= standings.size()) {
+                            standings.add(friend);
+                        }
+                    }
+                } else {
+                    friend.friend = true;
+                    standings.add(friend);
+                }
+            }
         }
 
         public String toJson() {

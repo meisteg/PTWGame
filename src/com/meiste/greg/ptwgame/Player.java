@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012-2013 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.meiste.greg.ptwgame;
 import com.google.appengine.api.users.User;
 import com.google.gson.annotations.Expose;
 import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.NotSaved;
 
 @Cached
 public class Player extends DatastoreObject {
@@ -39,10 +40,14 @@ public class Player extends DatastoreObject {
     @Expose
     public Integer wins;
 
+    @Expose
+    @NotSaved
+    public boolean friend;
+
     public Player() {
     }
 
-    public Player(int race_id, User user) {
+    public Player(final int race_id, final User user) {
         super(race_id);
         setUserId(user);
 
@@ -50,7 +55,7 @@ public class Player extends DatastoreObject {
         points = races = wins = 0;
     }
 
-    public Player(int race_id, String user_id) {
+    public Player(final int race_id, final String user_id) {
         super(race_id);
         mUserId = user_id;
 
@@ -58,7 +63,11 @@ public class Player extends DatastoreObject {
         points = races = wins = 0;
     }
 
-    public void setUserId(User user) {
+    public void setUserId(final User user) {
         mUserId = user.getUserId();
+    }
+
+    public boolean isIdentifiable() {
+        return (name != null) || (rank != null);
     }
 }

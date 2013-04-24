@@ -55,6 +55,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-name>SendMessageServlet</servlet-name>
 		<servlet-class>com.meiste.greg.ptwgame.SendMessageServlet</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>Friend</servlet-name>
+		<servlet-class>com.meiste.greg.ptwgame.FriendServlet</servlet-class>
+	</servlet>
 	
 	<servlet-mapping>
 		<servlet-name>Questions</servlet-name>
@@ -99,6 +103,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<servlet-mapping>
 		<servlet-name>SendMessageServlet</servlet-name>
 		<url-pattern>/tasks/send</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Friend</servlet-name>
+		<url-pattern>/friend</url-pattern>
 	</servlet-mapping>
 	
 	<welcome-file-list>

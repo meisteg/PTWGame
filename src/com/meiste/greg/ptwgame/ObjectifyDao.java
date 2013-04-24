@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012-2013 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ public class ObjectifyDao<T extends DatastoreObject> extends DAOBase {
     private static final int BAD_MODIFIERS = Modifier.FINAL | Modifier.STATIC | Modifier.TRANSIENT;
 
     static {
+        ObjectifyService.register(FriendLink.class);
         ObjectifyService.register(Player.class);
         ObjectifyService.register(RaceAnswers.class);
         ObjectifyService.register(RaceCorrectAnswers.class);
@@ -100,6 +101,10 @@ public class ObjectifyDao<T extends DatastoreObject> extends DAOBase {
             throw new IllegalStateException("Race ID is not set!");
 
         return ofy().put(entity);
+    }
+    
+    public void delete(T entity) {
+        ofy().delete(entity);
     }
 
     public T getByProperty(String propName, Object propValue) {
