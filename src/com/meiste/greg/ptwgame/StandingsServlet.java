@@ -17,6 +17,7 @@
 package com.meiste.greg.ptwgame;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -93,7 +94,7 @@ public class StandingsServlet extends HttpServlet {
                 if (newName != null) {
                     // Verify name not taken by someone else
                     final Player other = mPlayerDao.getByProperty("name", newName);
-                    if ((other != null) && !other.mUserId.equals(self.mUserId)){
+                    if ((other != null) && !other.mUserId.equals(self.mUserId)) {
                         newName = self.name;
                     }
                 }
@@ -127,6 +128,18 @@ public class StandingsServlet extends HttpServlet {
             if (self == null) {
                 log.info("User " + user + " not found in standings. Creating player...");
                 self = new Player(race_id, user);
+
+                // Try to be nice and retrieve player name from last year
+                final Player oldSelf = mPlayerDao.getByPropertyAndYear("mUserId", user.getUserId(),
+                        Calendar.getInstance().get(Calendar.YEAR) - 1);
+                if ((oldSelf != null) && (oldSelf.name != null)) {
+                    // Verify name not already taken by someone else this year
+                    final Player other = mPlayerDao.getByProperty("name", oldSelf.name);
+                    if (other == null) {
+                        self.name = oldSelf.name;
+                    }
+                }
+
                 mPlayerDao.put(self);
             }
 

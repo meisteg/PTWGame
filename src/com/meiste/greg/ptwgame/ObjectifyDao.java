@@ -45,38 +45,38 @@ public class ObjectifyDao<T extends DatastoreObject> extends DAOBase {
 
     protected Class<T> mClazz;
 
-    public ObjectifyDao(Class<T> clazz) {
+    public ObjectifyDao(final Class<T> clazz) {
         mClazz = clazz;
     }
 
-    public T get(int race_id) {
+    public T get(final int race_id) {
         return get(Calendar.getInstance().get(Calendar.YEAR), race_id);
     }
 
-    public T get(int year, int race_id) {
-        Query<T> q = ofy().query(mClazz);
+    public T get(final int year, final int race_id) {
+        final Query<T> q = ofy().query(mClazz);
         q.filter("mYear", year);
         q.filter("mRaceId", race_id);
         return q.get();
     }
 
-    public Iterable<T> getAll(int race_id) {
-        Query<T> q = ofy().query(mClazz);
+    public Iterable<T> getAll(final int race_id) {
+        final Query<T> q = ofy().query(mClazz);
         q.filter("mYear", Calendar.getInstance().get(Calendar.YEAR));
         if (race_id >= 0)
             q.filter("mRaceId", race_id);
         return q.fetch();
     }
 
-    public List<T> getAllForUser(String user_id) {
-        Query<T> q = ofy().query(mClazz);
+    public List<T> getAllForUser(final String user_id) {
+        final Query<T> q = ofy().query(mClazz);
         q.filter("mYear", Calendar.getInstance().get(Calendar.YEAR));
         q.filter("mUserId", user_id);
         return q.list();
     }
 
-    public List<T> getList(String order, int limit) {
-        Query<T> q = ofy().query(mClazz);
+    public List<T> getList(final String order, final int limit) {
+        final Query<T> q = ofy().query(mClazz);
         q.filter("mYear", Calendar.getInstance().get(Calendar.YEAR));
         if (order != null) {
             q.order(order);
@@ -87,60 +87,64 @@ public class ObjectifyDao<T extends DatastoreObject> extends DAOBase {
         return q.list();
     }
 
-    public List<T> getList(String... orders) {
-        Query<T> q = ofy().query(mClazz);
+    public List<T> getList(final String... orders) {
+        final Query<T> q = ofy().query(mClazz);
         q.filter("mYear", Calendar.getInstance().get(Calendar.YEAR));
-        for (String order : orders) {
+        for (final String order : orders) {
             q.order(order);
         }
         return q.list();
     }
 
-    public Key<T> put(T entity) throws IllegalStateException {
+    public Key<T> put(final T entity) throws IllegalStateException {
         if (entity.getRaceId() < 0)
             throw new IllegalStateException("Race ID is not set!");
 
         return ofy().put(entity);
     }
-    
-    public void delete(T entity) {
+
+    public void delete(final T entity) {
         ofy().delete(entity);
     }
 
-    public T getByProperty(String propName, Object propValue) {
-        Query<T> q = ofy().query(mClazz);
-        q.filter("mYear", Calendar.getInstance().get(Calendar.YEAR));
+    public T getByProperty(final String propName, final Object propValue) {
+        return getByPropertyAndYear(propName, propValue, Calendar.getInstance().get(Calendar.YEAR));
+    }
+
+    public T getByPropertyAndYear(final String propName, final Object propValue, final int year) {
+        final Query<T> q = ofy().query(mClazz);
+        q.filter("mYear", year);
         q.filter(propName, propValue);
         return q.get();
     }
 
-    public T getByPropertyMax(String propName) {
-        Query<T> q = ofy().query(mClazz);
+    public T getByPropertyMax(final String propName) {
+        final Query<T> q = ofy().query(mClazz);
         q.filter("mYear", Calendar.getInstance().get(Calendar.YEAR));
         q.order("-" + propName);
         return q.get();
     }
 
-    public T getByExample(T exampleObj) {
-        Query<T> queryByExample = buildQueryByExample(exampleObj);
-        Iterable<T> iterableResults = queryByExample.fetch();
-        Iterator<T> i = iterableResults.iterator();
+    public T getByExample(final T exampleObj) {
+        final Query<T> queryByExample = buildQueryByExample(exampleObj);
+        final Iterable<T> iterableResults = queryByExample.fetch();
+        final Iterator<T> i = iterableResults.iterator();
         if (!i.hasNext())
             return null;
-        T obj = i.next();
+        final T obj = i.next();
         if (i.hasNext())
             throw new RuntimeException("Too many results");
         return obj;
     }
 
     @SuppressWarnings("rawtypes")
-    protected Query<T> buildQueryByExample(T exampleObj) {
-        Query<T> q = ofy().query(mClazz);
+    protected Query<T> buildQueryByExample(final T exampleObj) {
+        final Query<T> q = ofy().query(mClazz);
         Class obj = mClazz;
 
         // Add all non-null properties to query filter
         do {
-            for (Field field : obj.getDeclaredFields()) {
+            for (final Field field : obj.getDeclaredFields()) {
                 // Ignore transient, embedded, array, and collection properties
                 if (field.isAnnotationPresent(Transient.class)
                         || (field.isAnnotationPresent(Embedded.class))
@@ -155,9 +159,9 @@ public class ObjectifyDao<T extends DatastoreObject> extends DAOBase {
                 Object value;
                 try {
                     value = field.get(exampleObj);
-                } catch (IllegalArgumentException e) {
+                } catch (final IllegalArgumentException e) {
                     throw new RuntimeException(e);
-                } catch (IllegalAccessException e) {
+                } catch (final IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }
                 if (value != null) {
