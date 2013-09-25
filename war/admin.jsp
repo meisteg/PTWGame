@@ -1,81 +1,22 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.List" %>
+
 <%@ page import="com.google.appengine.api.users.UserService" %>
 <%@ page import="com.google.appengine.api.users.UserServiceFactory" %>
 
 <%@ page import="com.meiste.greg.ptwgame.Driver" %>
+<%@ page import="com.meiste.greg.ptwgame.DriverDatastore" %>
 <%@ page import="com.meiste.greg.ptwgame.ObjectifyDao" %>
 <%@ page import="com.meiste.greg.ptwgame.Race" %>
 <%@ page import="com.meiste.greg.ptwgame.RaceCorrectAnswers" %>
 <%@ page import="com.meiste.greg.ptwgame.RaceQuestions" %>
 <%@ page import="com.meiste.greg.ptwgame.Races" %>
 
-<%
-final String[] drivers = {
-    "{\"mName\":\"A.J. Allmendinger\",\"mNumber\":22}",
-    "{\"mName\":\"Aric Almirola\",\"mNumber\":43}",
-    "{\"mName\":\"Marcos Ambrose\",\"mNumber\":9}",
-    "{\"mName\":\"Trevor Bayne\",\"mNumber\":21}",
-    "{\"mName\":\"Greg Biffle\",\"mNumber\":16}",
-    "{\"mName\":\"Dave Blaney\",\"mNumber\":36}",
-    "{\"mName\":\"Mike Bliss\",\"mNumber\":32}",
-    "{\"mName\":\"Clint Bowyer\",\"mNumber\":15}",
-    "{\"mName\":\"Jeff Burton\",\"mNumber\":31}",
-    "{\"mName\":\"Kurt Busch\",\"mNumber\":51}",
-    "{\"mName\":\"Kyle Busch\",\"mNumber\":18}",
-    "{\"mName\":\"Landon Cassill\",\"mNumber\":83}",
-    "{\"mName\":\"Stacy Compton\",\"mNumber\":74}",
-    "{\"mName\":\"Dale Earnhardt Jr.\",\"mNumber\":88}",
-    "{\"mName\":\"Carl Edwards\",\"mNumber\":99}",
-    "{\"mName\":\"Bill Elliott\",\"mNumber\":97}",
-    "{\"mName\":\"Brendan Gaughan\",\"mNumber\":33}",
-    "{\"mName\":\"David Gilliland\",\"mNumber\":38}",
-    "{\"mName\":\"Jeff Gordon\",\"mNumber\":24}",
-    "{\"mName\":\"Robby Gordon\",\"mNumber\":7}",
-    "{\"mName\":\"Denny Hamlin\",\"mNumber\":11}",
-    "{\"mName\":\"Kevin Harvick\",\"mNumber\":29}",
-    "{\"mName\":\"Timmy Hill\",\"mNumber\":37}",
-    "{\"mName\":\"Jimmie Johnson\",\"mNumber\":48}",
-    "{\"mName\":\"Kasey Kahne\",\"mNumber\":5}",
-    "{\"mName\":\"Matt Kenseth\",\"mNumber\":17}",
-    "{\"mName\":\"Brad Keselowski\",\"mNumber\":2}",
-    "{\"mName\":\"Travis Kvapil\",\"mNumber\":93}",
-    "{\"mName\":\"Terry Labonte\",\"mNumber\":320}",
-    "{\"mName\":\"Bobby Labonte\",\"mNumber\":47}",
-    "{\"mName\":\"Joey Logano\",\"mNumber\":20}",
-    "{\"mName\":\"Mark Martin\",\"mNumber\":55}",
-    "{\"mName\":\"Michael McDowell\",\"mNumber\":98}",
-    "{\"mName\":\"Jamie McMurray\",\"mNumber\":1}",
-    "{\"mName\":\"Casey Mears\",\"mNumber\":13}",
-    "{\"mName\":\"Paul Menard\",\"mNumber\":27}",
-    "{\"mName\":\"Juan Montoya\",\"mNumber\":42}",
-    "{\"mName\":\"Joe Nemechek\",\"mNumber\":87}",
-    "{\"mName\":\"Ryan Newman\",\"mNumber\":39}",
-    "{\"mName\":\"Danica Patrick\",\"mNumber\":100}",
-    "{\"mName\":\"David Ragan\",\"mNumber\":34}",
-    "{\"mName\":\"Tony Raines\",\"mNumber\":26}",
-    "{\"mName\":\"David Reutimann\",\"mNumber\":10}",
-    "{\"mName\":\"Robert Richardson Jr.\",\"mNumber\":23}",
-    "{\"mName\":\"Scott Riggs\",\"mNumber\":230}",
-    "{\"mName\":\"Elliott Sadler\",\"mNumber\":330}",
-    "{\"mName\":\"Ken Schrader\",\"mNumber\":321}",
-    "{\"mName\":\"Regan Smith\",\"mNumber\":78}",
-    "{\"mName\":\"Reed Sorenson\",\"mNumber\":740}",
-    "{\"mName\":\"Ricky Stenhouse Jr.\",\"mNumber\":6}",
-    "{\"mName\":\"Tony Stewart\",\"mNumber\":14}",
-    "{\"mName\":\"David Stremme\",\"mNumber\":30}",
-    "{\"mName\":\"Martin Truex Jr.\",\"mNumber\":56}",
-    "{\"mName\":\"Brian Vickers\",\"mNumber\":550}",
-    "{\"mName\":\"Kenny Wallace\",\"mNumber\":109}",
-    "{\"mName\":\"Mike Wallace\",\"mNumber\":370}",
-    "{\"mName\":\"Michael Waltrip\",\"mNumber\":140}",
-    "{\"mName\":\"Josh Wise\",\"mNumber\":260}",
-    "{\"mName\":\"J.J. Yeley\",\"mNumber\":249}"
-};
-%>
-
 <html>
   <head>
     <title>Pick The Winner Administration</title>
+    <link href="css/multi-select.css" media="screen" rel="stylesheet" type="text/css">
+    <link href="css/admin.css" media="screen" rel="stylesheet" type="text/css">
   </head>
   <body bgcolor="#BBBBBB">
     <h1>Pick The Winner Administration</h1>
@@ -113,10 +54,10 @@ final String[] drivers = {
                 <p>Pick The Winner</p>
                 <div><select name="a1">
 <%
-                for (String json : drivers) {
-                    Driver driver = Driver.fromJson(json);
+                List<Driver> drivers = DriverDatastore.getAll();
+                for (Driver driver : drivers) {
 %>
-                    <option value="<%= driver.mNumber %>"><%= driver.mName %></option>
+                    <option value="<%= driver.mNumber %>"><%= driver.getName() %></option>
 <%
                 }
 %>
@@ -144,10 +85,9 @@ final String[] drivers = {
                 <p>Which driver will lead the most laps?</p>
                 <div><select name="a4">
 <%
-                for (String json : drivers) {
-                    Driver driver = Driver.fromJson(json);
+                for (Driver driver : drivers) {
 %>
-                    <option value="<%= driver.mNumber %>"><%= driver.mName %></option>
+                    <option value="<%= driver.mNumber %>"><%= driver.getName() %></option>
 <%
                 }
 %>
@@ -170,11 +110,24 @@ final String[] drivers = {
         Race race = Races.getNext(false, false);
         if (race != null) {
 %>
-            <h2>Submit Questions for <%= race.getTrack(Race.NAME_LONG) %></h2>
+            <div id="submit_questions"><h2>Submit Questions for <%= race.getTrack(Race.NAME_LONG) %></h2>
             <form action="/admin" method="post">
                 <input type="hidden" name="op" value="questions">
                 
-                <div><input name="q2" type="text" size="70" placeholder="Question 2" required="required" />*</div>
+                <div style="margin-left:3px"><select multiple="multiple" id="drivers" name="drivers">
+<%
+                // TODO: Preselect drivers if entered in previous race
+                List<Driver> drivers = DriverDatastore.getAll();
+                for (Driver driver : drivers) {
+%>
+                    <option value="<%= driver.mNumber %>"><%= driver.getName() %></option>
+<%
+                }
+%>
+                </select>
+                <a href="#" id="add_driver">Add New Driver</a></div>
+                
+                <div style="margin-top:30px"><input name="q2" type="text" size="70" placeholder="Question 2" required="required" />*</div>
                 <div style="margin-left:40px"><input name="q2a1" type="text" size="20" placeholder="Answer 1" required="required" />*</div>
                 <div style="margin-left:40px"><input name="q2a2" type="text" size="20" placeholder="Answer 2" required="required" />*</div>
                 <div style="margin-left:40px"><input name="q2a3" type="text" size="20" placeholder="Answer 3" /></div>
@@ -190,6 +143,42 @@ final String[] drivers = {
                 
                 <div style="margin-top:30px"><input type="submit" value="Submit" /></div>
             </form>
+            </div>
+            <div id="submit_driver" style="display:none"><h2>Add New Driver</h2>
+            <form id="driver_form" action="/admin" method="post">
+                <input type="hidden" name="op" value="driver">
+
+                <div>
+                    <input name="driver_fname" id="driver_fname" type="text" size="15" placeholder="First Name" autocomplete="off" required="required" />
+                    <input name="driver_lname" type="text" size="15" placeholder="Last Name" autocomplete="off" required="required" />
+                </div>
+                <input name="driver_num" type="number" step="1" max="999" placeholder="Number" autocomplete="off" required="required" />
+
+                <div style="margin-top:30px">
+                    <input type="button" value="Cancel" id="cancel_driver" />
+                    <input type="submit" value="Add" />
+                </div>
+            </form>
+            </div>
+            <script src="js/jquery-1.10.2.min.js" type="text/javascript"></script>
+            <script src="js/jquery.multi-select.js" type="text/javascript"></script>
+            <script type="text/javascript">
+                $('#drivers').multiSelect({
+                    selectableHeader: "<div class='custom-header'>Inactive Drivers</div>",
+                    selectionHeader: "<div class='custom-header'>Entry List</div>"
+                });
+                $("#add_driver").click(function() {
+                    $("#submit_questions").hide();
+                    $("#submit_driver").show();
+                    $("#driver_fname").focus();
+                    
+                });
+                $("#cancel_driver").click(function() {
+                    $("#driver_form")[0].reset();
+                    $("#submit_questions").show();
+                    $("#submit_driver").hide();
+                });
+            </script>
 <%
         } else {
 %>

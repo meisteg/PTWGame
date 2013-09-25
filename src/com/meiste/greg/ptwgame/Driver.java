@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012-2013 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,19 @@
  */
 package com.meiste.greg.ptwgame;
 
-import com.google.gson.Gson;
+import com.google.gson.annotations.Expose;
 
 public final class Driver {
+    @Expose
     public int mNumber;
-    public String mName;
 
-    public static Driver fromJson(String json) {
-        return new Gson().fromJson(json, Driver.class);
+    @Expose
+    public String mFirstName;
+
+    @Expose
+    public String mLastName;
+
+    public String getName() {
+        return mFirstName + " " + mLastName;
     }
 }

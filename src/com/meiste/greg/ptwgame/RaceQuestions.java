@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012-2013 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public class RaceQuestions extends DatastoreObject {
         super();
     }
 
-    public RaceQuestions(int race_id) {
+    public RaceQuestions(final int race_id) {
         super(race_id);
     }
 
@@ -52,7 +52,7 @@ public class RaceQuestions extends DatastoreObject {
         return q2;
     }
 
-    public void setQ2(String q) {
+    public void setQ2(final String q) {
         q2 = q;
     }
 
@@ -60,7 +60,7 @@ public class RaceQuestions extends DatastoreObject {
         return a2;
     }
 
-    public void setA2(String[] a) {
+    public void setA2(final String[] a) {
         a2 = a;
     }
 
@@ -68,7 +68,7 @@ public class RaceQuestions extends DatastoreObject {
         return q3;
     }
 
-    public void setQ3(String q) {
+    public void setQ3(final String q) {
         q3 = q;
     }
 
@@ -76,12 +76,12 @@ public class RaceQuestions extends DatastoreObject {
         return a3;
     }
 
-    public void setA3(String[] a) {
+    public void setA3(final String[] a) {
         a3 = a;
     }
 
     public String toJson() {
-        Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
         return gson.toJson(this);
     }
 }

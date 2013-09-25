@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012-2013 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,29 +41,33 @@ public class AdminServlet extends HttpServlet {
     private final ObjectifyDao<RaceCorrectAnswers> mAnswersDao =
             new ObjectifyDao<RaceCorrectAnswers>(RaceCorrectAnswers.class);
 
-    public void doGet(HttpServletRequest req, HttpServletResponse resp)
+    @Override
+    public void doGet(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
         resp.sendRedirect("/admin.jsp");
     }
 
-    public void doPost(HttpServletRequest req, HttpServletResponse resp)
+    @Override
+    public void doPost(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
-        String op = req.getParameter("op");
+        final String op = req.getParameter("op");
 
         if (op.equals("questions")) {
             submitQuestions(req);
         } else if (op.equals("answers")) {
             submitAnswers(req);
+        } else if (op.equals("driver")) {
+            submitDriver(req);
         }
 
         resp.sendRedirect("/admin.jsp");
     }
 
-    private void submitQuestions(HttpServletRequest req) {
+    private void submitQuestions(final HttpServletRequest req) {
         // Set allowInProgress to true here in case a tardy admin tries to
         // submit questions at the last second. If allowInProgress is false
         // they could inadvertently submit questions for the next race.
-        Race race = Races.getNext(false, true);
+        final Race race = Races.getNext(false, true);
         if ((race != null) && !race.inProgress()) {
             RaceQuestions q = mQuestionsDao.get(race.getId());
             if (q == null) {
@@ -71,17 +75,17 @@ public class AdminServlet extends HttpServlet {
                 q.setQ2(req.getParameter("q2"));
                 q.setQ3(req.getParameter("q3"));
 
-                List<String> a2 = new ArrayList<String>();
+                final List<String> a2 = new ArrayList<String>();
                 for (int i = 1; i <= 5; ++i) {
-                    String temp = req.getParameter("q2a" + i);
+                    final String temp = req.getParameter("q2a" + i);
                     if (temp.length() > 0)
                         a2.add(temp);
                 }
                 q.setA2(a2.toArray(new String[a2.size()]));
 
-                List<String> a3 = new ArrayList<String>();
+                final List<String> a3 = new ArrayList<String>();
                 for (int i = 1; i <= 5; ++i) {
-                    String temp = req.getParameter("q3a" + i).trim();
+                    final String temp = req.getParameter("q3a" + i).trim();
                     if (temp.length() > 0)
                         a3.add(temp);
                 }
@@ -96,8 +100,8 @@ public class AdminServlet extends HttpServlet {
         }
     }
 
-    private void submitAnswers(HttpServletRequest req) {
-        Race race = Race.getInstance(Integer.parseInt(req.getParameter("race_id")));
+    private void submitAnswers(final HttpServletRequest req) {
+        final Race race = Race.getInstance(Integer.parseInt(req.getParameter("race_id")));
         if (race.isFuture()) {
             log.warning("Race not finished! Answers not set.");
             return;
@@ -109,7 +113,7 @@ public class AdminServlet extends HttpServlet {
             return;
         }
 
-        UserService userService = UserServiceFactory.getUserService();
+        final UserService userService = UserServiceFactory.getUserService();
         a = new RaceCorrectAnswers(race.getId(), userService.getCurrentUser());
         a.a1 = Integer.parseInt(req.getParameter("a1"));
         a.a2 = Integer.parseInt(req.getParameter("a2"));
@@ -119,7 +123,15 @@ public class AdminServlet extends HttpServlet {
         mAnswersDao.put(a);
 
         // Kick off task to calculate new standings
-        Queue queue = QueueFactory.getDefaultQueue();
+        final Queue queue = QueueFactory.getDefaultQueue();
         queue.add(withUrl("/tasks/standings").param("race_id", String.valueOf(race.getId())));
+    }
+
+    private void submitDriver(final HttpServletRequest req) {
+        final Driver driver = new Driver();
+        driver.mFirstName = req.getParameter("driver_fname");
+        driver.mLastName = req.getParameter("driver_lname");
+        driver.mNumber = Integer.parseInt(req.getParameter("driver_num"));
+        DriverDatastore.add(driver);
     }
 }
