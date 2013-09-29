@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 
 <%@ page import="com.google.appengine.api.users.UserService" %>
@@ -21,13 +22,13 @@
   <body bgcolor="#BBBBBB">
     <h1>Pick The Winner Administration</h1>
     
-    <% UserService userService = UserServiceFactory.getUserService(); %>
+    <% final UserService userService = UserServiceFactory.getUserService(); %>
     <p><a href="<%= userService.createLogoutURL(request.getRequestURI()) %>">Sign out</a></p>
     
 <%
-    ObjectifyDao<RaceQuestions> qDao = new ObjectifyDao<RaceQuestions>(RaceQuestions.class);
-    ObjectifyDao<RaceCorrectAnswers> aDao = new ObjectifyDao<RaceCorrectAnswers>(RaceCorrectAnswers.class);
-    Iterable<RaceQuestions> qAll = qDao.getAll(-1);
+    final ObjectifyDao<RaceQuestions> qDao = new ObjectifyDao<RaceQuestions>(RaceQuestions.class);
+    final ObjectifyDao<RaceCorrectAnswers> aDao = new ObjectifyDao<RaceCorrectAnswers>(RaceCorrectAnswers.class);
+    final Iterable<RaceQuestions> qAll = qDao.getAll(-1);
     RaceQuestions questions = null;
     if (qAll != null) {
         for (RaceQuestions temp : qAll) {
@@ -38,7 +39,7 @@
         }
     }
     if (questions != null) {
-        Race race = Race.getInstance(questions.getRaceId());
+        final Race race = Race.getInstance(questions.getRaceId());
 %>
         <h2>Submit Answers for <%= race.getTrack(Race.NAME_LONG) %></h2>
 <%
@@ -54,8 +55,7 @@
                 <p>Pick The Winner</p>
                 <div><select name="a1">
 <%
-                List<Driver> drivers = DriverDatastore.getAll();
-                for (Driver driver : drivers) {
+                for (final Driver driver : questions.drivers) {
 %>
                     <option value="<%= driver.mNumber %>"><%= driver.getName() %></option>
 <%
@@ -85,7 +85,7 @@
                 <p>Which driver will lead the most laps?</p>
                 <div><select name="a4">
 <%
-                for (Driver driver : drivers) {
+                for (final Driver driver : questions.drivers) {
 %>
                     <option value="<%= driver.mNumber %>"><%= driver.getName() %></option>
 <%
@@ -107,7 +107,7 @@
 <%
         }
     } else {
-        Race race = Races.getNext(false, false);
+        final Race race = Races.getNext(false, false);
         if (race != null) {
 %>
             <div id="submit_questions"><h2>Submit Questions for <%= race.getTrack(Race.NAME_LONG) %></h2>
@@ -116,11 +116,17 @@
                 
                 <div style="margin-left:3px"><select multiple="multiple" id="drivers" name="drivers">
 <%
-                // TODO: Preselect drivers if entered in previous race
-                List<Driver> drivers = DriverDatastore.getAll();
-                for (Driver driver : drivers) {
+                final List<Driver> drivers = DriverDatastore.getAll();
+                RaceQuestions prq = null;
+                int rId = race.getId();
+                while ((rId > 0) && (prq == null)) {
+                    prq = qDao.get(--rId);
+                }
+                for (final Driver d : drivers) {
 %>
-                    <option value="<%= driver.mNumber %>"><%= driver.getName() %></option>
+                    <option value="<%= d.mNumber %>"<% if (prq != null && prq.drivers.contains(d)) { %> selected <% } %> >
+                        <%= d.getName() %>
+                    </option>
 <%
                 }
 %>

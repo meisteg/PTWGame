@@ -35,6 +35,7 @@ import com.google.appengine.api.users.UserServiceFactory;
 @SuppressWarnings("serial")
 public class AdminServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(AdminServlet.class.getName());
+    private static final int MIN_NUM_DRIVERS = 43;
 
     private final ObjectifyDao<RaceQuestions> mQuestionsDao =
             new ObjectifyDao<RaceQuestions>(RaceQuestions.class);
@@ -91,7 +92,20 @@ public class AdminServlet extends HttpServlet {
                 }
                 q.setA3(a3.toArray(new String[a3.size()]));
 
-                mQuestionsDao.put(q);
+                final String[] driver_nums = req.getParameterValues("drivers");
+                if (driver_nums == null) {
+                    log.warning("No drivers submitted. Questions not set.");
+                } else if (driver_nums.length < MIN_NUM_DRIVERS) {
+                    log.warning("Need at least " + MIN_NUM_DRIVERS + " drivers. Only submitted "
+                            + driver_nums.length + " drivers. Questions not set.");
+                } else {
+                    q.drivers = new ArrayList<Driver>();
+                    for (final String driver_num : driver_nums) {
+                        final int num = Integer.parseInt(driver_num);
+                        q.drivers.add(DriverDatastore.findDriverByNumber(num));
+                    }
+                    mQuestionsDao.put(q);
+                }
             } else {
                 log.warning("Race already has questions in database! Questions not set.");
             }

@@ -30,4 +30,15 @@ public final class Driver {
     public String getName() {
         return mFirstName + " " + mLastName;
     }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (o != null && o instanceof Driver) {
+            final Driver d = (Driver) o;
+            return (mNumber == d.mNumber) &&
+                    mFirstName.equals(d.mFirstName) &&
+                    mLastName.equals(d.mLastName);
+        }
+        return false;
+    }
 }

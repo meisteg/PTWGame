@@ -16,6 +16,10 @@
 
 package com.meiste.greg.ptwgame;
 
+import java.util.List;
+
+import javax.persistence.Embedded;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
@@ -24,6 +28,15 @@ import com.googlecode.objectify.annotation.Unindexed;
 
 @Cached
 public class RaceQuestions extends DatastoreObject {
+    /* Drivers field left null by default intentionally. If an admin fails to
+     * set the questions, drivers array should be null so PTW app falls back to
+     * old hard-coded drivers behavior.
+     */
+    @Unindexed
+    @Expose
+    @Embedded
+    public List<Driver> drivers;
+
     @Unindexed
     @Expose
     private String q2 = "Which manufacturer will have more cars finish in the top 10?";

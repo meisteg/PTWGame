@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012-2013 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ public final class Race {
     private long mQuestion;
     @SuppressWarnings("unused") private String mLayout;
 
-    public static Race getInstance(int id) {
+    public static Race getInstance(final int id) {
         return Races.get()[id];
     }
 
@@ -54,11 +54,7 @@ public final class Race {
         return mId;
     }
 
-    public String getRaceNum() {
-        return isExhibition() ? "-" : Integer.toString(mRaceNum);
-    }
-
-    public String getTrack(int length) {
+    public String getTrack(final int length) {
         return (length == NAME_SHORT) ? mTrackShort : mTrackLong;
     }
 

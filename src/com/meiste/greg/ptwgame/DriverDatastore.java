@@ -51,12 +51,11 @@ public final class DriverDatastore {
     public static boolean add(final Driver driver) {
         final Transaction txn = datastore.beginTransaction();
         try {
-            Entity entity = findDriverByNumber(driver.mNumber);
-            if (entity != null) {
+            if (findDriverByNumber(driver.mNumber) != null) {
                 logger.warning(driver.mNumber + " is already taken; ignoring.");
                 return false;
             }
-            entity = new Entity(DRIVER_TYPE);
+            final Entity entity = new Entity(DRIVER_TYPE);
             entity.setProperty(DRIVER_NUMBER_PROPERTY, driver.mNumber);
             entity.setProperty(DRIVER_FIRST_NAME_PROPERTY, driver.mFirstName);
             entity.setProperty(DRIVER_LAST_NAME_PROPERTY, driver.mLastName);
@@ -81,11 +80,7 @@ public final class DriverDatastore {
             final Iterable<Entity> entities =
                     datastore.prepare(query).asIterable(DEFAULT_FETCH_OPTIONS);
             for (final Entity entity : entities) {
-                final Driver driver = new Driver();
-                driver.mFirstName = (String) entity.getProperty(DRIVER_FIRST_NAME_PROPERTY);
-                driver.mLastName = (String) entity.getProperty(DRIVER_LAST_NAME_PROPERTY);
-                driver.mNumber = ((Long) entity.getProperty(DRIVER_NUMBER_PROPERTY)).intValue();
-                drivers.add(driver);
+                drivers.add(entityToDriver(entity));
             }
             txn.commit();
         } finally {
@@ -96,7 +91,7 @@ public final class DriverDatastore {
         return drivers;
     }
 
-    private static Entity findDriverByNumber(final int num) {
+    public static Driver findDriverByNumber(final int num) {
         final Query query = new Query(DRIVER_TYPE)
         .setFilter(new FilterPredicate(DRIVER_NUMBER_PROPERTY, FilterOperator.EQUAL, num));
         final PreparedQuery preparedQuery = datastore.prepare(query);
@@ -110,6 +105,14 @@ public final class DriverDatastore {
             logger.severe(
                     "Found " + size + " entities for number " + num + ": " + entities);
         }
-        return entity;
+        return entityToDriver(entity);
+    }
+
+    private static Driver entityToDriver(final Entity e) {
+        final Driver driver = new Driver();
+        driver.mFirstName = (String) e.getProperty(DRIVER_FIRST_NAME_PROPERTY);
+        driver.mLastName = (String) e.getProperty(DRIVER_LAST_NAME_PROPERTY);
+        driver.mNumber = ((Long) e.getProperty(DRIVER_NUMBER_PROPERTY)).intValue();
+        return driver;
     }
 }
