@@ -123,8 +123,12 @@
                     prq = qDao.get(--rId);
                 }
                 for (final Driver d : drivers) {
+                    boolean selected = false;
+                    if (prq != null && prq.drivers != null && prq.drivers.contains(d)) {
+                        selected = true;
+                    }
 %>
-                    <option value="<%= d.mNumber %>"<% if (prq != null && prq.drivers.contains(d)) { %> selected <% } %> >
+                    <option value="<%= d.mNumber %>"<% if (selected) { %> selected <% } %> >
                         <%= d.getName() %>
                     </option>
 <%

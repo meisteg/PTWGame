@@ -96,16 +96,16 @@ public final class DriverDatastore {
         .setFilter(new FilterPredicate(DRIVER_NUMBER_PROPERTY, FilterOperator.EQUAL, num));
         final PreparedQuery preparedQuery = datastore.prepare(query);
         final List<Entity> entities = preparedQuery.asList(DEFAULT_FETCH_OPTIONS);
-        Entity entity = null;
+        Driver driver = null;
         if (!entities.isEmpty()) {
-            entity = entities.get(0);
+            driver = entityToDriver(entities.get(0));
         }
         final int size = entities.size();
         if (size > 1) {
             logger.severe(
                     "Found " + size + " entities for number " + num + ": " + entities);
         }
-        return entityToDriver(entity);
+        return driver;
     }
 
     private static Driver entityToDriver(final Entity e) {
