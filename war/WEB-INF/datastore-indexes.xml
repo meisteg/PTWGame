@@ -18,4 +18,9 @@
         <property name="races" direction="desc"/>
     </datastore-index>
 
+    <datastore-index kind="Driver" ancestor="false" source="manual">
+        <property name="lastName" direction="asc"/>
+        <property name="firstName" direction="asc"/>
+    </datastore-index>
+
 </datastore-indexes>
