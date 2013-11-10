@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012-2013 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,15 +36,15 @@ public final class Races {
                 log.info("Populating race array");
 
                 try {
-                    InputStream is = new FileInputStream(new File("schedule"));
-                    BufferedReader in = new BufferedReader(new InputStreamReader(is));
+                    final InputStream is = new FileInputStream(new File("schedule"));
+                    final BufferedReader in = new BufferedReader(new InputStreamReader(is));
                     String line;
-                    StringBuilder buffer = new StringBuilder();
+                    final StringBuilder buffer = new StringBuilder();
                     while ((line = in.readLine()) != null)
                         buffer.append(line).append('\n');
                     in.close();
                     sRaces = new Gson().fromJson(buffer.toString(), Race[].class);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     log.warning("Unable to open schedule: " + e);
                 }
             }
@@ -52,8 +52,8 @@ public final class Races {
         return sRaces;
     }
 
-    public static Race getNext(boolean allowExhibition, boolean allowInProgress) {
-        for (Race race : get()) {
+    public static Race getNext(final boolean allowExhibition, final boolean allowInProgress) {
+        for (final Race race : get()) {
             if (race.isFuture()) {
                 if (!allowExhibition && race.isExhibition())
                     continue;
