@@ -133,20 +133,12 @@ public final class GCMDatastore {
         final Transaction txn = datastore.beginTransaction();
         try {
             final Query query = new Query(DEVICE_TYPE);
-            // Could add this after finished with schema update
-            //.addProjection(new PropertyProjection(DEVICE_REG_ID_PROPERTY, String.class));
             final Iterable<Entity> entities =
                     datastore.prepare(query).asIterable(DEFAULT_FETCH_OPTIONS);
             devices = new ArrayList<String>();
             for (final Entity entity : entities) {
                 final String device = (String) entity.getProperty(DEVICE_REG_ID_PROPERTY);
                 devices.add(device);
-
-                // Schema update: Make sure timestamp has value so it can be queried
-                if (entity.getProperty(DEVICE_TIMESTAMP_PROPERTY) == null) {
-                    entity.setProperty(DEVICE_TIMESTAMP_PROPERTY, 0);
-                    datastore.put(entity);
-                }
             }
             txn.commit();
         } finally {

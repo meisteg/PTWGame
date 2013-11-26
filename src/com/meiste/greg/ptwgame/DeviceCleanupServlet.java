@@ -48,7 +48,7 @@ public class DeviceCleanupServlet extends HttpServlet {
         final Properties props = new Properties();
         final Session session = Session.getDefaultInstance(props, null);
         final String msgSubject = "Cleaned up " + devices.size() + " registrations";
-        final String msgBody = Joiner.on('\n').join(devices);
+        final String msgBody = Joiner.on("\n\n").join(devices);
         final Message msg = new MimeMessage(session);
         try {
             msg.setFrom(new InternetAddress("greg.meiste@gmail.com", "Pick The Winner"));
