@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import org.datanucleus.util.StringUtils;
+
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -38,8 +40,10 @@ import com.google.appengine.api.datastore.Transaction;
 public final class GCMDatastore {
 
     public static final int MULTICAST_SIZE = 1000;
+
     private static final String DEVICE_TYPE = "Device";
     private static final String DEVICE_REG_ID_PROPERTY = "regId";
+    private static final String DEVICE_USER_ID_PROPERTY = "userId";
     private static final String DEVICE_TIMESTAMP_PROPERTY = "timestamp";
     private static final long DEVICE_REG_EXPIRATION = TimeUnit.DAYS.toMillis(180);
 
@@ -62,8 +66,9 @@ public final class GCMDatastore {
      * Registers a device.
      *
      * @param regId device's registration id.
+     * @param userId current user's id.
      */
-    public static void register(final String regId) {
+    public static void register(final String regId, final String userId) {
         logger.info("Registering " + regId);
         final Transaction txn = datastore.beginTransaction();
         try {
@@ -73,6 +78,9 @@ public final class GCMDatastore {
             } else {
                 entity = new Entity(DEVICE_TYPE);
                 entity.setProperty(DEVICE_REG_ID_PROPERTY, regId);
+            }
+            if (!StringUtils.isEmpty(userId)) {
+                entity.setProperty(DEVICE_USER_ID_PROPERTY, userId);
             }
             entity.setProperty(DEVICE_TIMESTAMP_PROPERTY, System.currentTimeMillis());
             datastore.put(entity);
@@ -114,7 +122,7 @@ public final class GCMDatastore {
     public static void updateRegistration(final String oldId, final String newId) {
         logger.info("Updating " + oldId + " to " + newId);
         unregister(oldId);
-        register(newId);
+        register(newId, null);
     }
 
     /**
