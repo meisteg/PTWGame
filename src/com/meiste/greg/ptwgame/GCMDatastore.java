@@ -16,6 +16,12 @@
  */
 package com.meiste.greg.ptwgame;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
+
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -26,12 +32,8 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Transaction;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Logger;
 
 public final class GCMDatastore {
 
@@ -39,6 +41,7 @@ public final class GCMDatastore {
     private static final String DEVICE_TYPE = "Device";
     private static final String DEVICE_REG_ID_PROPERTY = "regId";
     private static final String DEVICE_TIMESTAMP_PROPERTY = "timestamp";
+    private static final long DEVICE_REG_EXPIRATION = TimeUnit.DAYS.toMillis(180);
 
     private static final String MULTICAST_TYPE = "Multicast";
     private static final String MULTICAST_REG_IDS_PROPERTY = "regIds";
@@ -122,12 +125,20 @@ public final class GCMDatastore {
         final Transaction txn = datastore.beginTransaction();
         try {
             final Query query = new Query(DEVICE_TYPE);
+            // Could add this after finished with schema update
+            //.addProjection(new PropertyProjection(DEVICE_REG_ID_PROPERTY, String.class));
             final Iterable<Entity> entities =
                     datastore.prepare(query).asIterable(DEFAULT_FETCH_OPTIONS);
             devices = new ArrayList<String>();
             for (final Entity entity : entities) {
                 final String device = (String) entity.getProperty(DEVICE_REG_ID_PROPERTY);
                 devices.add(device);
+
+                // Schema update: Make sure timestamp has value so it can be queried
+                if (entity.getProperty(DEVICE_TIMESTAMP_PROPERTY) == null) {
+                    entity.setProperty(DEVICE_TIMESTAMP_PROPERTY, 0);
+                    datastore.put(entity);
+                }
             }
             txn.commit();
         } finally {
@@ -158,10 +169,9 @@ public final class GCMDatastore {
         }
     }
 
-    @SuppressWarnings("deprecation")
     public static Entity findDeviceByRegId(final String regId) {
         final Query query = new Query(DEVICE_TYPE)
-        .addFilter(DEVICE_REG_ID_PROPERTY, FilterOperator.EQUAL, regId);
+        .setFilter(new FilterPredicate(DEVICE_REG_ID_PROPERTY, FilterOperator.EQUAL, regId));
         final PreparedQuery preparedQuery = datastore.prepare(query);
         final List<Entity> entities = preparedQuery.asList(DEFAULT_FETCH_OPTIONS);
         Entity entity = null;
@@ -174,6 +184,43 @@ public final class GCMDatastore {
                     "Found " + size + " entities for regId " + regId + ": " + entities);
         }
         return entity;
+    }
+
+    /**
+     * Clean up old registered devices.
+     * 
+     * @param commit Flag indicating whether to commit the cleanup to the datastore
+     * 
+     * @return List of device registration IDs cleaned up
+     */
+    public static List<String> cleanupDevices(final boolean commit) {
+        final List<String> devices = new ArrayList<String>();
+        final List<Key> keys = new ArrayList<Key>();
+        final long expiration = System.currentTimeMillis() - DEVICE_REG_EXPIRATION;
+
+        logger.info("Cleaning up registrations older than " + expiration +
+                ". commit=" + commit);
+
+        final Transaction txn = datastore.beginTransaction();
+        try {
+            final Query query = new Query(DEVICE_TYPE)
+            .setFilter(new FilterPredicate(DEVICE_TIMESTAMP_PROPERTY, FilterOperator.LESS_THAN, expiration));
+            final Iterable<Entity> entities =
+                    datastore.prepare(query).asIterable(DEFAULT_FETCH_OPTIONS);
+            for (final Entity entity : entities) {
+                devices.add((String) entity.getProperty(DEVICE_REG_ID_PROPERTY));
+                keys.add(entity.getKey());
+            }
+            if (commit) {
+                datastore.delete(keys);
+            }
+            txn.commit();
+        } finally {
+            if (txn.isActive()) {
+                txn.rollback();
+            }
+        }
+        return devices;
     }
 
     /**
