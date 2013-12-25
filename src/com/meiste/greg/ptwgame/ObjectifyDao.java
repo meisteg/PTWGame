@@ -69,9 +69,13 @@ public class ObjectifyDao<T extends DatastoreObject> extends DAOBase {
     }
 
     public List<T> getAllForUser(final String user_id) {
+        return getAllByProperty("mUserId", user_id);
+    }
+
+    public List<T> getAllByProperty(final String propName, final Object propValue) {
         final Query<T> q = ofy().query(mClazz);
         q.filter("mYear", Calendar.getInstance().get(Calendar.YEAR));
-        q.filter("mUserId", user_id);
+        q.filter(propName, propValue);
         return q.list();
     }
 

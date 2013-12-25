@@ -1,6 +1,6 @@
 /*
  * Copyright 2012 Google Inc.
- * Copyright 2012 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright 2012-2013 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -44,12 +44,16 @@ public class SendMessageServlet extends GCMBaseServlet {
     private static final String HEADER_QUEUE_NAME = "X-AppEngine-QueueName";
     private static final int MAX_RETRY = 3;
 
-    static final String PARAMETER_MULTICAST = "multicastKey";
+    public static final String PARAMETER_MULTICAST = "multicastKey";
+    public static final String PARAMETER_MSG_TYPE = "collapseKey";
+
+    public static final String MSG_TYPE_SYNC = "ptw_sync";
+    public static final String MSG_TYPE_HISTORY = "ptw_history";
 
     private Sender sender;
 
     @Override
-    public void init(ServletConfig config) throws ServletException {
+    public void init(final ServletConfig config) throws ServletException {
         super.init(config);
         sender = newSender(config);
     }
@@ -57,8 +61,8 @@ public class SendMessageServlet extends GCMBaseServlet {
     /**
      * Creates the {@link Sender} based on the servlet settings.
      */
-    protected Sender newSender(ServletConfig config) {
-        String key = (String) config.getServletContext()
+    protected Sender newSender(final ServletConfig config) {
+        final String key = (String) config.getServletContext()
                 .getAttribute(ApiKeyInitializer.ATTRIBUTE_ACCESS_KEY);
         return new Sender(key);
     }
@@ -66,14 +70,14 @@ public class SendMessageServlet extends GCMBaseServlet {
     /**
      * Indicates to App Engine that this task should be retried.
      */
-    private void retryTask(HttpServletResponse resp) {
+    private void retryTask(final HttpServletResponse resp) {
         resp.setStatus(500);
     }
 
     /**
      * Indicates to App Engine that this task is done.
      */
-    private void taskDone(HttpServletResponse resp) {
+    private void taskDone(final HttpServletResponse resp) {
         resp.setStatus(200);
     }
 
@@ -81,16 +85,16 @@ public class SendMessageServlet extends GCMBaseServlet {
      * Processes the request to add a new message.
      */
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+    protected void doPost(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
         if (req.getHeader(HEADER_QUEUE_NAME) == null) {
             throw new IOException("Missing header " + HEADER_QUEUE_NAME);
         }
 
-        String retryCountHeader = req.getHeader(HEADER_QUEUE_COUNT);
+        final String retryCountHeader = req.getHeader(HEADER_QUEUE_COUNT);
         logger.fine("retry count: " + retryCountHeader);
         if (retryCountHeader != null) {
-            int retryCount = Integer.parseInt(retryCountHeader);
+            final int retryCount = Integer.parseInt(retryCountHeader);
             if (retryCount > MAX_RETRY) {
                 logger.severe("Too many retries, dropping task");
                 taskDone(resp);
@@ -98,9 +102,10 @@ public class SendMessageServlet extends GCMBaseServlet {
             }
         }
 
-        String multicastKey = req.getParameter(PARAMETER_MULTICAST);
+        final String multicastKey = req.getParameter(PARAMETER_MULTICAST);
         if (multicastKey != null) {
-            sendMulticastMessage(multicastKey, resp);
+            final String collapseKey = getParameter(req, PARAMETER_MSG_TYPE, MSG_TYPE_SYNC);
+            sendMulticastMessage(multicastKey, collapseKey, resp);
             return;
         }
 
@@ -108,15 +113,15 @@ public class SendMessageServlet extends GCMBaseServlet {
         taskDone(resp);
     }
 
-    private void sendMulticastMessage(String multicastKey,
-            HttpServletResponse resp) {
+    private void sendMulticastMessage(final String multicastKey, final String collapseKey,
+            final HttpServletResponse resp) {
         // Recover registration ids from datastore
-        List<String> regIds = GCMDatastore.getMulticast(multicastKey);
-        Message message = new Message.Builder().collapseKey("ptw_sync").build();
+        final List<String> regIds = GCMDatastore.getMulticast(multicastKey);
+        final Message message = new Message.Builder().collapseKey(collapseKey).build();
         MulticastResult multicastResult;
         try {
             multicastResult = sender.sendNoRetry(message, regIds);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             logger.log(Level.SEVERE, "Exception posting " + message, e);
             multicastDone(resp, multicastKey);
             return;
@@ -124,23 +129,23 @@ public class SendMessageServlet extends GCMBaseServlet {
         boolean allDone = true;
         // check if any registration id must be updated
         if (multicastResult.getCanonicalIds() != 0) {
-            List<Result> results = multicastResult.getResults();
+            final List<Result> results = multicastResult.getResults();
             for (int i = 0; i < results.size(); i++) {
-                String canonicalRegId = results.get(i).getCanonicalRegistrationId();
+                final String canonicalRegId = results.get(i).getCanonicalRegistrationId();
                 if (canonicalRegId != null) {
-                    String regId = regIds.get(i);
+                    final String regId = regIds.get(i);
                     GCMDatastore.updateRegistration(regId, canonicalRegId);
                 }
             }
         }
         if (multicastResult.getFailure() != 0) {
             // there were failures, check if any could be retried
-            List<Result> results = multicastResult.getResults();
-            List<String> retriableRegIds = new ArrayList<String>();
+            final List<Result> results = multicastResult.getResults();
+            final List<String> retriableRegIds = new ArrayList<String>();
             for (int i = 0; i < results.size(); i++) {
-                String error = results.get(i).getErrorCodeName();
+                final String error = results.get(i).getErrorCodeName();
                 if (error != null) {
-                    String regId = regIds.get(i);
+                    final String regId = regIds.get(i);
                     logger.warning("Got error (" + error + ") for regId " + regId);
                     if (error.equals(Constants.ERROR_NOT_REGISTERED)) {
                         // application has been removed from device - unregister it
@@ -166,7 +171,7 @@ public class SendMessageServlet extends GCMBaseServlet {
         }
     }
 
-    private void multicastDone(HttpServletResponse resp, String encodedKey) {
+    private void multicastDone(final HttpServletResponse resp, final String encodedKey) {
         GCMDatastore.deleteMulticast(encodedKey);
         taskDone(resp);
     }

@@ -19,12 +19,12 @@ package com.meiste.greg.ptwgame;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
@@ -35,6 +35,9 @@ import com.google.gson.Gson;
 
 @SuppressWarnings("serial")
 public class FriendServlet extends HttpServlet {
+
+    private static final Logger logger = Logger.getLogger(FriendServlet.class.getName());
+
     private final ObjectifyDao<FriendLink> mFriendLinkDao =
             new ObjectifyDao<FriendLink>(FriendLink.class);
     private final ObjectifyDao<Player> mPlayerDao =
@@ -76,9 +79,11 @@ public class FriendServlet extends HttpServlet {
 
         FriendLink fLink = new FriendLink(user.getUserId(), other.mUserId);
         FriendLink fLinkDB = mFriendLinkDao.getByExample(fLink);
+        final List<String> deviceList = new ArrayList<String>();
         if (fReq.player.friend) {
             if (fLinkDB == null) {
                 mFriendLinkDao.put(fLink);
+                deviceList.addAll(getUserDevices(user.getUserId()));
             }
             // If GCM registration ID present, it indicates friend request
             // is the result of NFC. Need to friend in reverse as well, then
@@ -88,23 +93,50 @@ public class FriendServlet extends HttpServlet {
                 fLinkDB = mFriendLinkDao.getByExample(fLink);
                 if (fLinkDB == null) {
                     mFriendLinkDao.put(fLink);
-                    sendGcmToFriend(fReq.gcmRegId);
+                    deviceList.addAll(getFriendDevices(other.mUserId, fReq.gcmRegId));
                 }
             }
         } else if (fLinkDB != null) {
             mFriendLinkDao.delete(fLinkDB);
+            deviceList.addAll(getUserDevices(user.getUserId()));
+        }
+
+        if (!deviceList.isEmpty()) {
+            sendGcm(deviceList);
         }
     }
 
-    private void sendGcmToFriend(final String device) {
-        final Queue queue = QueueFactory.getDefaultQueue();
-        final List<String> deviceList = new ArrayList<String>(1);
-        deviceList.add(device);
+    private static List<String> getUserDevices(final String userId) {
+        final List<String> deviceList = GCMDatastore.getDevicesForUser(userId);
+        if (deviceList.size() == 1) {
+            // If just one device, don't need to ping it. The device already is aware
+            // of the situation. Only need to ping when where are multiple devices.
+            deviceList.clear();
+        }
+        return deviceList;
+    }
+
+    private static List<String> getFriendDevices(final String userId, final String regId) {
+        final List<String> deviceList = GCMDatastore.getDevicesForUser(userId);
+        if (!deviceList.contains(regId)) {
+            deviceList.add(regId);
+
+            // Don't attempt to fix by registering here. The friend may not be
+            // running latest version of the app, so it may not support all the
+            // new GCM messages.
+            //GCMDatastore.register(regId, userId);
+        }
+        return deviceList;
+    }
+
+    private static void sendGcm(final List<String> deviceList) {
+        logger.info("Sending sync GCM to " + deviceList.size() + " devices");
+
         final String multicastKey = GCMDatastore.createMulticast(deviceList);
         final TaskOptions taskOptions = TaskOptions.Builder
                 .withUrl("/tasks/send")
                 .param(SendMessageServlet.PARAMETER_MULTICAST, multicastKey)
                 .method(Method.POST);
-        queue.add(taskOptions);
+        QueueFactory.getDefaultQueue().add(taskOptions);
     }
 }

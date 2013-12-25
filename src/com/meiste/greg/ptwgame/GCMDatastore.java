@@ -150,6 +150,30 @@ public final class GCMDatastore {
     }
 
     /**
+     * Gets all registered devices for a user.
+     */
+    public static List<String> getDevicesForUser(final String userId) {
+        final List<String> devices = new ArrayList<String>();
+        final Transaction txn = datastore.beginTransaction();
+        try {
+            final Query query = new Query(DEVICE_TYPE)
+            .setFilter(new FilterPredicate(DEVICE_USER_ID_PROPERTY, FilterOperator.EQUAL, userId));
+            final Iterable<Entity> entities =
+                    datastore.prepare(query).asIterable(DEFAULT_FETCH_OPTIONS);
+            for (final Entity entity : entities) {
+                final String device = (String) entity.getProperty(DEVICE_REG_ID_PROPERTY);
+                devices.add(device);
+            }
+            txn.commit();
+        } finally {
+            if (txn.isActive()) {
+                txn.rollback();
+            }
+        }
+        return devices;
+    }
+
+    /**
      * Gets the number of total devices.
      */
     public static int getTotalDevices() {

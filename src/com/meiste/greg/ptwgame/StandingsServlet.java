@@ -25,6 +25,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.TaskOptions;
+import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -102,12 +105,39 @@ public class StandingsServlet extends HttpServlet {
                 self.name = newName;
                 mPlayerDao.put(self);
                 log.info(user.getEmail() + " changed player name to " + newName);
+                sendGcm(user.getUserId());
 
                 doGet(req, resp);
             } else
                 resp.sendError(405);
         } else {
             resp.sendRedirect(userService.createLoginURL(req.getRequestURI()));
+        }
+    }
+
+    private void sendGcm(final String userId) {
+        final List<String> deviceList = GCMDatastore.getDevicesForUser(userId);
+        if (deviceList.size() == 1) {
+            // If just one device, don't need to ping it. The device already is aware
+            // of the situation. Only need to ping when where are multiple devices.
+            deviceList.clear();
+        }
+
+        // Also send sync GCM to players who are friends with this user
+        final List<FriendLink> fLinks = mFriendLinkDao.getAllByProperty("mFriendUserId", userId);
+        for (final FriendLink fLink : fLinks) {
+            deviceList.addAll(GCMDatastore.getDevicesForUser(fLink.mUserId));
+        }
+
+        if (!deviceList.isEmpty()) {
+            log.info("Sending sync GCM to " + deviceList.size() + " devices");
+
+            final String multicastKey = GCMDatastore.createMulticast(deviceList);
+            final TaskOptions taskOptions = TaskOptions.Builder
+                    .withUrl("/tasks/send")
+                    .param(SendMessageServlet.PARAMETER_MULTICAST, multicastKey)
+                    .method(Method.POST);
+            QueueFactory.getDefaultQueue().add(taskOptions);
         }
     }
 
