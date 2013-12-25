@@ -73,10 +73,6 @@ public class QuestionsServlet extends HttpServlet {
         final User user = userService.getCurrentUser();
 
         if (user != null) {
-            // Technically, this probably should be after the DAO put(), but
-            // having it here makes it easier for testing.
-            sendGcm(user.getUserId());
-
             final Race race = Races.getNext(false, true);
             if ((race != null) && race.inProgress()) {
                 RaceAnswers a = mAnswersDao.getByExample(new RaceAnswers(race.getId(), user));
@@ -85,6 +81,7 @@ public class QuestionsServlet extends HttpServlet {
                     a.setUserId(user);
                     a.setRaceId(race.getId());
                     mAnswersDao.put(a);
+                    sendGcm(user.getUserId());
                 }
 
                 resp.setContentType("text/plain");
