@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2013-2014 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,7 @@ public class DeviceCleanupServlet extends HttpServlet {
     @Override
     public void doGet(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
-        // For now, don't commit cleanup to the database
-        final List<String> devices = GCMDatastore.cleanupDevices(false);
+        final List<String> devices = GCMDatastore.cleanupDevices(true);
 
         final Properties props = new Properties();
         final Session session = Session.getDefaultInstance(props, null);
