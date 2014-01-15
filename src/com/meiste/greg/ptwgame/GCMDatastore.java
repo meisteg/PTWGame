@@ -1,6 +1,6 @@
 /*
  * Copyright 2012 Google Inc.
- * Copyright (C) 2013 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2013-2014 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -219,7 +219,6 @@ public final class GCMDatastore {
      */
     public static List<String> cleanupDevices(final boolean commit) {
         final List<String> devices = new ArrayList<String>();
-        final List<Key> keys = new ArrayList<Key>();
         final long expiration = System.currentTimeMillis() - DEVICE_REG_EXPIRATION;
 
         logger.info("Cleaning up registrations older than " + expiration +
@@ -233,10 +232,6 @@ public final class GCMDatastore {
                     datastore.prepare(query).asIterable(DEFAULT_FETCH_OPTIONS);
             for (final Entity entity : entities) {
                 devices.add((String) entity.getProperty(DEVICE_REG_ID_PROPERTY));
-                keys.add(entity.getKey());
-            }
-            if (commit) {
-                datastore.delete(keys);
             }
             txn.commit();
         } finally {
@@ -244,6 +239,13 @@ public final class GCMDatastore {
                 txn.rollback();
             }
         }
+
+        if (commit) {
+            for (final String regId : devices) {
+                unregister(regId);
+            }
+        }
+
         return devices;
     }
 
