@@ -1,6 +1,6 @@
 /*
  * Copyright 2012 Google Inc.
- * Copyright 2012-2013 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright 2012-2014 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -49,6 +49,7 @@ public class SendMessageServlet extends GCMBaseServlet {
 
     public static final String MSG_TYPE_SYNC = "ptw_sync";
     public static final String MSG_TYPE_HISTORY = "ptw_history";
+    public static final String MSG_TYPE_RULES = "ptw_rules";
 
     private Sender sender;
 

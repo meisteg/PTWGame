@@ -48,8 +48,8 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-class>com.meiste.greg.ptwgame.UnregisterServlet</servlet-class>
 	</servlet>
 	<servlet>
-		<servlet-name>StandingsSendAllServlet</servlet-name>
-		<servlet-class>com.meiste.greg.ptwgame.StandingsSendAllServlet</servlet-class>
+		<servlet-name>PushServlet</servlet-name>
+		<servlet-class>com.meiste.greg.ptwgame.PushServlet</servlet-class>
 	</servlet>
 	<servlet>
 		<servlet-name>SendMessageServlet</servlet-name>
@@ -101,7 +101,7 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<url-pattern>/unregister</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-		<servlet-name>StandingsSendAllServlet</servlet-name>
+		<servlet-name>PushServlet</servlet-name>
 		<url-pattern>/push</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>

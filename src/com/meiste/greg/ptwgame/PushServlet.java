@@ -1,6 +1,6 @@
 /*
  * Copyright 2012 Google Inc.
- * Copyright 2012 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright 2012, 2014 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -35,43 +35,48 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
  * This servlet is used just by the browser (i.e., not device).
  */
 @SuppressWarnings("serial")
-public class StandingsSendAllServlet extends GCMBaseServlet {
+public class PushServlet extends GCMBaseServlet {
+
+    public static final String PARAMETER_MSG_TYPE = "msgType";
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+    protected void doGet(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException, ServletException {
-        List<String> devices = GCMDatastore.getDevices();
+        final String msgType = getParameter(req, PARAMETER_MSG_TYPE,
+                SendMessageServlet.MSG_TYPE_SYNC);
+        final List<String> devices = GCMDatastore.getDevices();
         String status;
 
         if (devices.isEmpty()) {
-            status = "Message ignored as there are no devices registered!";
+            status = "Message " + msgType + " ignored as there are no devices registered!";
         } else {
-            Queue queue = QueueFactory.getDefaultQueue();
+            final Queue queue = QueueFactory.getDefaultQueue();
 
             // must split in chunks of 1000 devices (GCM limit)
-            int total = devices.size();
-            List<String> partialDevices = new ArrayList<String>(total);
+            final int total = devices.size();
+            final List<String> partialDevices = new ArrayList<String>(total);
             int counter = 0;
             int tasks = 0;
-            for (String device : devices) {
+            for (final String device : devices) {
                 counter++;
                 partialDevices.add(device);
-                int partialSize = partialDevices.size();
+                final int partialSize = partialDevices.size();
                 if (partialSize == GCMDatastore.MULTICAST_SIZE || counter == total) {
-                    String multicastKey = GCMDatastore.createMulticast(partialDevices);
+                    final String multicastKey = GCMDatastore.createMulticast(partialDevices);
                     logger.fine("Queuing " + partialSize + " devices on multicast " +
                             multicastKey);
-                    TaskOptions taskOptions = TaskOptions.Builder
+                    final TaskOptions taskOptions = TaskOptions.Builder
                             .withUrl("/tasks/send")
                             .param(SendMessageServlet.PARAMETER_MULTICAST, multicastKey)
+                            .param(SendMessageServlet.PARAMETER_MSG_TYPE, msgType)
                             .method(Method.POST);
                     queue.add(taskOptions);
                     partialDevices.clear();
                     tasks++;
                 }
             }
-            status = "Queued tasks to send " + tasks + " multicast messages to " +
-                    total + " devices";
+            status = "Sending " + tasks + " multicast messages of type " +
+                    msgType + " to " + total + " devices";
         }
 
         resp.setContentType("text/plain");
