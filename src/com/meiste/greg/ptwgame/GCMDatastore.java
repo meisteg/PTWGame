@@ -68,7 +68,7 @@ public final class GCMDatastore {
      * @param regId device's registration id.
      * @param userId current user's id.
      */
-    public static void register(final String regId, final String userId) {
+    public static synchronized void register(final String regId, final String userId) {
         logger.info("Registering " + regId);
         final Transaction txn = datastore.beginTransaction();
         try {
@@ -97,7 +97,7 @@ public final class GCMDatastore {
      *
      * @param regId device's registration id.
      */
-    public static void unregister(final String regId) {
+    public static synchronized void unregister(final String regId) {
         logger.info("Unregistering " + regId);
         final Transaction txn = datastore.beginTransaction();
         try {
