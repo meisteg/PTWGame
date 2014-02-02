@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012, 2014 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,26 +35,43 @@ public class StandingsCalcServlet extends HttpServlet {
     private final ObjectifyDao<Player> mPlayerDao =
             new ObjectifyDao<Player>(Player.class);
 
-    public void doPost(HttpServletRequest req, HttpServletResponse resp)
+    // The 27th points race is the start of the Chase, but when counting
+    // exhibition races, it is the 31st race of season.
+    private static final int RACE_ID_CHASE_START = 31;
+    private static final int RACE_ID_ROUND_2_START = RACE_ID_CHASE_START + 3;
+    private static final int RACE_ID_ROUND_3_START = RACE_ID_CHASE_START + 6;
+    private static final int RACE_ID_ROUND_4_START = RACE_ID_CHASE_START + 9;
+
+    @Override
+    public void doPost(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
-        int race_id = Integer.parseInt(req.getParameter("race_id"));
+        final int race_id = Integer.parseInt(req.getParameter("race_id"));
         log.info("Updating standings for race " + race_id);
 
-        RaceCorrectAnswers answers = mCorrectAnswersDao.get(race_id);
+        final RaceCorrectAnswers answers = mCorrectAnswersDao.get(race_id);
         if (answers == null) {
             log.warning("Answers for race " + race_id + " not yet set.");
             resp.sendError(405);
             return;
         }
 
-        // Need to reset points if Chase is starting. Chicagoland is 27th
-        // points race, but 31st race of season when counting exhibitions.
-        if (race_id == 31) {
+        switch (race_id) {
+        case RACE_ID_CHASE_START:
             startChase();
+            break;
+        case RACE_ID_ROUND_2_START:
+            startRound2();
+            break;
+        case RACE_ID_ROUND_3_START:
+            startRound3();
+            break;
+        case RACE_ID_ROUND_4_START:
+            startRound4();
+            break;
         }
 
-        Iterable<RaceAnswers> submissions = mAnswersDao.getAll(race_id);
-        for (RaceAnswers a : submissions) {
+        final Iterable<RaceAnswers> submissions = mAnswersDao.getAll(race_id);
+        for (final RaceAnswers a : submissions) {
             Player player = mPlayerDao.getByProperty("mUserId", a.mUserId);
             if (player == null) {
                 log.info("User " + a.mUserId + " not found in standings. Creating player...");
@@ -81,8 +98,8 @@ public class StandingsCalcServlet extends HttpServlet {
 
         // TODO: Need to also add "submitted questions first" tie breaker
         int rank = 1;
-        List<Player> players = mPlayerDao.getList("-points", "-wins", "-races");
-        for (Player player : players) {
+        final List<Player> players = mPlayerDao.getList("-points", "-wins", "-races");
+        for (final Player player : players) {
             player.rank = rank++;
             mPlayerDao.put(player);
         }
@@ -91,40 +108,77 @@ public class StandingsCalcServlet extends HttpServlet {
     private void startChase() {
         log.info("The Chase begins now!");
 
-        List<Player> standings = mPlayerDao.getList("rank", 20);
-        Player[] wildcards = new Player[2];
+        final List<Player> standings =
+                mPlayerDao.getList("rank", StandingsCommon.NUM_PLAYERS_CHASE_ELIGIBLE);
+        final List<Player> chasePlayers = StandingsCommon.getChasePlayers(standings);
 
-        // Start by assuming 11th and 12th (counting from zero!) in standings
-        // are the wild cards
-        if (standings.get(10).wins >= standings.get(11).wins) {
-            wildcards[0] = standings.get(10);
-            wildcards[1] = standings.get(11);
-        } else {
-            wildcards[0] = standings.get(11);
-            wildcards[1] = standings.get(10);
+        // Reset points
+        for (final Player p : chasePlayers) {
+            p.points = StandingsCommon.CHASE_POINTS_BASE + (p.wins * 10);
+            mPlayerDao.put(p);
         }
-
-        // Then, check 13th - 20th to see if they have more wins
-        for (int i = 12; i < standings.size(); ++i) {
-            if (standings.get(i).wins > wildcards[0].wins) {
-                wildcards[1] = wildcards[0];
-                wildcards[0] = standings.get(i);
-            } else if (standings.get(i).wins > wildcards[1].wins) {
-                wildcards[1] = standings.get(i);
-            }
-        }
-
-        // Reset points for Top 10
-        for (int i = 0; i < 10; ++i) {
-            standings.get(i).points = 5000 + (standings.get(i).wins * 10);
-            mPlayerDao.put(standings.get(i));
-        }
-
-        // Reset points for two wildcards
-        wildcards[0].points = wildcards[1].points = 5000;
-        mPlayerDao.put(wildcards[0]);
-        mPlayerDao.put(wildcards[1]);
 
         // Done! No need to reset rank since regular scoring will handle it
+    }
+
+    private void startRound2() {
+        log.info("Beginning round 2 of the Chase");
+
+        final List<Player> standings =
+                mPlayerDao.getList("rank", StandingsCommon.NUM_PLAYERS_IN_ROUND_2);
+        for (final Player p : standings) {
+            p.points += StandingsCommon.CHASE_POINTS_PER_ROUND;
+            mPlayerDao.put(p);
+        }
+
+        // Done! No need to subtract points from the other Chase players.
+    }
+
+    private void startRound3() {
+        log.info("Beginning round 3 of the Chase");
+
+        final List<Player> standings =
+                mPlayerDao.getList("rank", StandingsCommon.NUM_PLAYERS_IN_ROUND_2);
+
+        // Remove Round 2 bonus from the players who did not advance to Round 3.
+        // No need to reset rank since regular scoring will handle it.
+        while (standings.size() > StandingsCommon.NUM_PLAYERS_IN_ROUND_3) {
+            final int index = standings.size() - 1;
+            final Player p = standings.get(index);
+            p.points -= StandingsCommon.CHASE_POINTS_PER_ROUND;
+            mPlayerDao.put(p);
+            standings.remove(index);
+        }
+
+        // Give Round 3 bonus to be consistent with NASCAR, though it doesn't
+        // really make much sense.
+        for (final Player p : standings) {
+            p.points += StandingsCommon.CHASE_POINTS_PER_ROUND;
+            mPlayerDao.put(p);
+        }
+    }
+
+    private void startRound4() {
+        log.info("Final round of the Chase");
+
+        final List<Player> standings =
+                mPlayerDao.getList("rank", StandingsCommon.NUM_PLAYERS_IN_ROUND_3);
+
+        // Remove Round 2 and 3 bonus from the players who did not advance to Round 4.
+        // No need to reset rank since regular scoring will handle it.
+        while (standings.size() > StandingsCommon.NUM_PLAYERS_IN_ROUND_4) {
+            final int index = standings.size() - 1;
+            final Player p = standings.get(index);
+            p.points -= (2 * StandingsCommon.CHASE_POINTS_PER_ROUND);
+            mPlayerDao.put(p);
+            standings.remove(index);
+        }
+
+        // Give Round 4 bonus to be consistent with NASCAR, though it doesn't
+        // really make much sense.
+        for (final Player p : standings) {
+            p.points += StandingsCommon.CHASE_POINTS_PER_ROUND;
+            mPlayerDao.put(p);
+        }
     }
 }

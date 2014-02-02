@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2013 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012-2014 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,6 @@ import com.google.gson.annotations.Expose;
 
 @SuppressWarnings("serial")
 public class StandingsServlet extends HttpServlet {
-    private static final int STANDINGS_TOPX = 25;
-
     private static final Logger log = Logger.getLogger(StandingsServlet.class.getName());
 
     private final ObjectifyDao<RaceCorrectAnswers> mCorrectAnswersDao =
@@ -142,6 +140,10 @@ public class StandingsServlet extends HttpServlet {
     }
 
     private class Standings {
+        private static final int STANDINGS_NUM_TO_SHOW_BEFORE_CHASE =
+                StandingsCommon.NUM_PLAYERS_CHASE_ELIGIBLE + 5;
+        private static final int STANDINGS_NUM_TO_SHOW_DURING_CHASE = 25;
+
         @Expose
         private int race_id = 0;
         @Expose
@@ -173,7 +175,33 @@ public class StandingsServlet extends HttpServlet {
                 mPlayerDao.put(self);
             }
 
-            standings = mPlayerDao.getList("rank", STANDINGS_TOPX);
+            int numToShow;
+            if (Race.getInstance(race_id).isInChase()) {
+                numToShow = STANDINGS_NUM_TO_SHOW_DURING_CHASE;
+                standings = mPlayerDao.getList("rank", numToShow);
+
+                for (final Player p : standings) {
+                    if (p.points >= StandingsCommon.CHASE_POINTS_BASE) {
+                        if (p.rank == self.rank) {
+                            self.inChase = true;
+                        }
+                        p.inChase = true;
+                    } else {
+                        break;
+                    }
+                }
+            } else {
+                numToShow = STANDINGS_NUM_TO_SHOW_BEFORE_CHASE;
+                standings = mPlayerDao.getList("rank", numToShow);
+
+                final List<Player> chasePlayers = StandingsCommon.getChasePlayers(standings);
+                for (final Player p : chasePlayers) {
+                    if (p.rank == self.rank) {
+                        self.inChase = true;
+                    }
+                    p.inChase = true;
+                }
+            }
 
             final List<FriendLink> fLinks = mFriendLinkDao.getAllForUser(user.getUserId());
             for (final FriendLink fLink : fLinks) {
@@ -184,12 +212,12 @@ public class StandingsServlet extends HttpServlet {
                 }
 
                 if (friend.rank != null) {
-                    if (friend.rank <= STANDINGS_TOPX) {
+                    if (friend.rank <= numToShow) {
                         standings.get(friend.rank - 1).friend = true;
                     } else {
                         friend.friend = true;
                         int i;
-                        for (i = STANDINGS_TOPX; i < standings.size(); ++i) {
+                        for (i = numToShow; i < standings.size(); ++i) {
                             if ((standings.get(i).rank == null) || (standings.get(i).rank > friend.rank)) {
                                 standings.add(i, friend);
                                 break;
