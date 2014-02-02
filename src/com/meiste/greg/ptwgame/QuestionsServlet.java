@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2013 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012-2014 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class QuestionsServlet extends HttpServlet {
     }
 
     @Override
-    public void doPost(final HttpServletRequest req, final HttpServletResponse resp)
+    public synchronized void doPost(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
         final UserService userService = UserServiceFactory.getUserService();
         final User user = userService.getCurrentUser();
