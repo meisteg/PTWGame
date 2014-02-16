@@ -54,7 +54,7 @@
   {
     "mTv": "FOX",
     "mLayout": "pir",
-    "mName": "The Profit on CNBC 500",
+    "mName": "The Profit on CNBC 500, Presented by Small Business Fueling America",
     "mTrackShort": "Phoenix",
     "mTrackLong": "Phoenix International Raceway",
     "mCityState": "Avondale, AZ",
@@ -119,7 +119,7 @@
   {
     "mTv": "FOX",
     "mLayout": "tms",
-    "mName": "Texas 500",
+    "mName": "Duck Commander 500",
     "mTrackShort": "Texas",
     "mTrackLong": "Texas Motor Speedway",
     "mCityState": "Fort Worth, TX",
@@ -470,7 +470,7 @@
   {
     "mTv": "ESPN",
     "mLayout": "tal",
-    "mName": "Talladega 500",
+    "mName": "Geico 500",
     "mTrackShort": "Talladega",
     "mTrackLong": "Talladega Superspeedway",
     "mCityState": "Talladega, AL",
