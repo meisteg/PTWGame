@@ -171,7 +171,7 @@
   {
     "mTv": "FOX",
     "mLayout": "kan",
-    "mName": "Kansas 400",
+    "mName": "5-hour ENERGY 400 Benefiting Special Operations Warrior Foundation",
     "mTrackShort": "Kansas",
     "mTrackLong": "Kansas Speedway",
     "mCityState": "Kansas City, KS",
@@ -223,7 +223,7 @@
   {
     "mTv": "FOX",
     "mLayout": "dov",
-    "mName": "Dover 400",
+    "mName": "FedEx 400 benefiting Autism Speaks",
     "mTrackShort": "Dover",
     "mTrackLong": "Dover International Speedway",
     "mCityState": "Dover, DE",
@@ -509,7 +509,7 @@
   {
     "mTv": "ESPN",
     "mLayout": "pir",
-    "mName": "Quicken Loans 500",
+    "mName": "Quicken Loans Race for Heroes 500",
     "mTrackShort": "Phoenix",
     "mTrackLong": "Phoenix International Raceway",
     "mCityState": "Avondale, AZ",
