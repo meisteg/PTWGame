@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2013 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012-2014 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@
 package com.meiste.greg.ptwgame;
 
 import java.util.List;
-
 import javax.persistence.Embedded;
+import javax.persistence.PostLoad;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
+import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Unindexed;
 
@@ -66,7 +67,7 @@ public class RaceQuestions extends DatastoreObject {
     }
 
     public void setQ2(final String q) {
-        q2 = q;
+        q2 = fixUp(q);
     }
 
     public String[] getA2() {
@@ -82,7 +83,7 @@ public class RaceQuestions extends DatastoreObject {
     }
 
     public void setQ3(final String q) {
-        q3 = q;
+        q3 = fixUp(q);
     }
 
     public String[] getA3() {
@@ -96,5 +97,18 @@ public class RaceQuestions extends DatastoreObject {
     public String toJson() {
         final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
         return gson.toJson(this);
+    }
+
+    @PostLoad
+    private void onLoad(final Objectify ofy) {
+        if (q2.contains("’") || q3.contains("’")) {
+            q2 = fixUp(q2);
+            q3 = fixUp(q3);
+            ofy.put(this);
+        }
+    }
+
+    private String fixUp(final String s) {
+        return s.replace("’", "'");
     }
 }
