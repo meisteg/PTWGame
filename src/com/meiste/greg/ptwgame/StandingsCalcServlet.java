@@ -35,13 +35,6 @@ public class StandingsCalcServlet extends HttpServlet {
     private final ObjectifyDao<Player> mPlayerDao =
             new ObjectifyDao<Player>(Player.class);
 
-    // The 27th points race is the start of the Chase, but when counting
-    // exhibition races, it is the 31st race of season.
-    private static final int RACE_ID_CHASE_START = 31;
-    private static final int RACE_ID_ROUND_2_START = RACE_ID_CHASE_START + 3;
-    private static final int RACE_ID_ROUND_3_START = RACE_ID_CHASE_START + 6;
-    private static final int RACE_ID_ROUND_4_START = RACE_ID_CHASE_START + 9;
-
     @Override
     public void doPost(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
@@ -56,16 +49,16 @@ public class StandingsCalcServlet extends HttpServlet {
         }
 
         switch (race_id) {
-        case RACE_ID_CHASE_START:
+        case StandingsCommon.RACE_ID_CHASE_START:
             startChase();
             break;
-        case RACE_ID_ROUND_2_START:
+        case StandingsCommon.RACE_ID_ROUND_2_START:
             startRound2();
             break;
-        case RACE_ID_ROUND_3_START:
+        case StandingsCommon.RACE_ID_ROUND_3_START:
             startRound3();
             break;
-        case RACE_ID_ROUND_4_START:
+        case StandingsCommon.RACE_ID_ROUND_4_START:
             startRound4();
             break;
         }

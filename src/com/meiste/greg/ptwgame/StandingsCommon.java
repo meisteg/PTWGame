@@ -29,6 +29,13 @@ public class StandingsCommon {
     public static final int NUM_PLAYERS_IN_ROUND_3 =  8;
     public static final int NUM_PLAYERS_IN_ROUND_4 =  4;
 
+    // The 27th points race is the start of the Chase, but when counting
+    // exhibition races, it is the 31st race of season.
+    public static final int RACE_ID_CHASE_START = 31;
+    public static final int RACE_ID_ROUND_2_START = RACE_ID_CHASE_START + 3;
+    public static final int RACE_ID_ROUND_3_START = RACE_ID_CHASE_START + 6;
+    public static final int RACE_ID_ROUND_4_START = RACE_ID_CHASE_START + 9;
+
     public static final int CHASE_POINTS_BASE      = 5000;
     public static final int CHASE_POINTS_PER_ROUND = 1000;
 
