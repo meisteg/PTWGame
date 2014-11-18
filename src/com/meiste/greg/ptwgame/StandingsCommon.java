@@ -36,6 +36,11 @@ public class StandingsCommon {
     public static final int RACE_ID_ROUND_3_START = RACE_ID_CHASE_START + 6;
     public static final int RACE_ID_ROUND_4_START = RACE_ID_CHASE_START + 9;
 
+    public static final int RACE_ID_ROUND_1_END = RACE_ID_ROUND_2_START - 1;
+    public static final int RACE_ID_ROUND_2_END = RACE_ID_ROUND_3_START - 1;
+    public static final int RACE_ID_ROUND_3_END = RACE_ID_ROUND_4_START - 1;
+    public static final int RACE_ID_ROUND_4_END = RACE_ID_ROUND_4_START;
+
     public static final int CHASE_POINTS_BASE      = 5000;
     public static final int CHASE_POINTS_PER_ROUND = 1000;
 

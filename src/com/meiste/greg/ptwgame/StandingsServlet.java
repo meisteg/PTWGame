@@ -180,16 +180,18 @@ public class StandingsServlet extends HttpServlet {
                 numToShow = STANDINGS_NUM_TO_SHOW_DURING_CHASE;
                 standings = mPlayerDao.getList("rank", numToShow);
 
-                int pointsBaseForRound = StandingsCommon.CHASE_POINTS_BASE;
-                if (race_id >= StandingsCommon.RACE_ID_ROUND_2_START)
-                    pointsBaseForRound += StandingsCommon.CHASE_POINTS_PER_ROUND;
-                if (race_id >= StandingsCommon.RACE_ID_ROUND_3_START)
-                    pointsBaseForRound += StandingsCommon.CHASE_POINTS_PER_ROUND;
-                if (race_id >= StandingsCommon.RACE_ID_ROUND_4_START)
-                    pointsBaseForRound += StandingsCommon.CHASE_POINTS_PER_ROUND;
+                int numPlayersInChase = StandingsCommon.NUM_PLAYERS_IN_CHASE;
+                if (race_id >= StandingsCommon.RACE_ID_ROUND_1_END)
+                    numPlayersInChase = StandingsCommon.NUM_PLAYERS_IN_ROUND_2;
+                if (race_id >= StandingsCommon.RACE_ID_ROUND_2_END)
+                    numPlayersInChase = StandingsCommon.NUM_PLAYERS_IN_ROUND_3;
+                if (race_id >= StandingsCommon.RACE_ID_ROUND_3_END)
+                    numPlayersInChase = StandingsCommon.NUM_PLAYERS_IN_ROUND_4;
+                if (race_id >= StandingsCommon.RACE_ID_ROUND_4_END)
+                    numPlayersInChase = 1; /* Champion */
 
                 for (final Player p : standings) {
-                    if (p.points >= pointsBaseForRound) {
+                    if (p.rank <= numPlayersInChase) {
                         if (p.rank == self.rank) {
                             self.inChase = true;
                         }
