@@ -1,2 +1,16 @@
-war/WEB-INF/classes
-war/WEB-INF/appengine-generated
+# Gradle
+.gradle
+build
+
+# Local configuration files (sdk path, etc)
+local.properties
+gradle.properties
+
+# OS generated files
+.DS_Store
+
+# IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea
