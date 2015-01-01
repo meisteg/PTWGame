@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012, 2014 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012, 2014-2015 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public class Suggestion {
 
     public int mYear = Calendar.getInstance().get(Calendar.YEAR);
     public int mRaceId = -1;
-    public String mUserId;
+    public String mUserEmail;
 
     @Unindex
     public String mSuggestion;
@@ -54,7 +54,7 @@ public class Suggestion {
 
     public Suggestion(final int raceId, final User user, final String json) {
         mRaceId = raceId;
-        mUserId = (user != null) ? user.getUserId() : null;
+        mUserEmail = (user != null) ? user.getEmail() : null;
 
         // Limit the input to 200 characters. Done here instead of the app
         // because someone can and will try to submit without the app.

@@ -38,8 +38,8 @@ public class Player {
     private Long id;
 
     public int mYear = Calendar.getInstance().get(Calendar.YEAR);
-
     public String mUserId;
+    public String userEmail;
 
     @Expose
     public String name;
@@ -117,9 +117,14 @@ public class Player {
     }
 
     public Player(final User user) {
-        this(user.getUserId());
+        mUserId = user.getUserId();
+        userEmail = user.getEmail();
+
+        // Do not set rank. A null rank indicates "not ranked".
+        points = races = wins = 0;
     }
 
+    @Deprecated
     public Player(final String userId) {
         mUserId = userId;
 
