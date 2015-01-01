@@ -7,11 +7,10 @@
 
 <%@ page import="com.meiste.greg.ptwgame.Driver" %>
 <%@ page import="com.meiste.greg.ptwgame.DriverDatastore" %>
-<%@ page import="com.meiste.greg.ptwgame.ObjectifyDao" %>
 <%@ page import="com.meiste.greg.ptwgame.Race" %>
-<%@ page import="com.meiste.greg.ptwgame.RaceCorrectAnswers" %>
-<%@ page import="com.meiste.greg.ptwgame.RaceQuestions" %>
 <%@ page import="com.meiste.greg.ptwgame.Races" %>
+<%@ page import="com.meiste.greg.ptwgame.entities.RaceCorrectAnswers" %>
+<%@ page import="com.meiste.greg.ptwgame.entities.RaceQuestions" %>
 
 <html>
   <head>
@@ -26,20 +25,18 @@
     <p><a href="<%= userService.createLogoutURL(request.getRequestURI()) %>">Sign out</a></p>
     
 <%
-    final ObjectifyDao<RaceQuestions> qDao = new ObjectifyDao<RaceQuestions>(RaceQuestions.class);
-    final ObjectifyDao<RaceCorrectAnswers> aDao = new ObjectifyDao<RaceCorrectAnswers>(RaceCorrectAnswers.class);
-    final Iterable<RaceQuestions> qAll = qDao.getAll(-1);
+    final List<RaceQuestions> qAll = RaceQuestions.getAll();
     RaceQuestions questions = null;
     if (qAll != null) {
-        for (RaceQuestions temp : qAll) {
-            if (aDao.get(temp.getRaceId()) == null) {
+        for (final RaceQuestions temp : qAll) {
+            if (RaceCorrectAnswers.get(temp.mRaceId) == null) {
                 questions = temp;
                 break;
             }
         }
     }
     if (questions != null) {
-        final Race race = Race.getInstance(questions.getRaceId());
+        final Race race = Race.getInstance(questions.mRaceId);
 %>
         <h2>Submit Answers for <%= race.getTrack(Race.NAME_LONG) %></h2>
 <%
@@ -62,22 +59,22 @@
                 }
 %>
                 </select></div>
-                <p><%= questions.getQ2() %></p>
+                <p><%= questions.q2 %></p>
                 <div><select name="a2">
 <%
-                for (int i = 0; i < questions.getA2().length; ++i) {
+                for (int i = 0; i < questions.a2.length; ++i) {
 %>
-                    <option value="<%= i %>"><%= questions.getA2()[i] %></option>
+                    <option value="<%= i %>"><%= questions.a2[i] %></option>
 <%
                 }
 %>
                 </select></div>
-                <p><%= questions.getQ3() %></p>
+                <p><%= questions.q3 %></p>
                 <div><select name="a3">
 <%
-                for (int i = 0; i < questions.getA3().length; ++i) {
+                for (int i = 0; i < questions.a3.length; ++i) {
 %>
-                    <option value="<%= i %>"><%= questions.getA3()[i] %></option>
+                    <option value="<%= i %>"><%= questions.a3[i] %></option>
 <%
                 }
 %>
@@ -120,7 +117,7 @@
                 RaceQuestions prq = null;
                 int rId = race.getId();
                 while ((rId > 0) && (prq == null)) {
-                    prq = qDao.get(--rId);
+                    prq = RaceQuestions.get(--rId);
                 }
                 for (final Driver d : drivers) {
                     boolean selected = false;

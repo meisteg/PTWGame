@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012-2015 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.meiste.greg.ptwgame;
+package com.meiste.greg.ptwgame.servlets;
 
 import java.io.IOException;
-import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -34,17 +33,14 @@ import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
+import com.meiste.greg.ptwgame.GCMDatastore;
+import com.meiste.greg.ptwgame.StandingsCommon;
+import com.meiste.greg.ptwgame.entities.FriendLink;
+import com.meiste.greg.ptwgame.entities.Player;
+import com.meiste.greg.ptwgame.entities.RaceCorrectAnswers;
 
-@SuppressWarnings("serial")
 public class StandingsServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(StandingsServlet.class.getName());
-
-    private final ObjectifyDao<RaceCorrectAnswers> mCorrectAnswersDao =
-            new ObjectifyDao<RaceCorrectAnswers>(RaceCorrectAnswers.class);
-    private final ObjectifyDao<Player> mPlayerDao =
-            new ObjectifyDao<Player>(Player.class);
-    private final ObjectifyDao<FriendLink> mFriendLinkDao =
-            new ObjectifyDao<FriendLink>(FriendLink.class);
 
     @Override
     public void doGet(final HttpServletRequest req, final HttpServletResponse resp)
@@ -67,7 +63,7 @@ public class StandingsServlet extends HttpServlet {
         final User user = userService.getCurrentUser();
 
         if (user != null) {
-            final Player self = mPlayerDao.getByProperty("mUserId", user.getUserId());
+            final Player self = Player.getByUserId(user.getUserId());
             if (self != null) {
                 final String json = req.getReader().readLine();
                 String newName = null;
@@ -94,14 +90,14 @@ public class StandingsServlet extends HttpServlet {
 
                 if (newName != null) {
                     // Verify name not taken by someone else
-                    final Player other = mPlayerDao.getByProperty("name", newName);
+                    final Player other = Player.getByName(newName);
                     if ((other != null) && !other.mUserId.equals(self.mUserId)) {
                         newName = self.name;
                     }
                 }
 
                 self.name = newName;
-                mPlayerDao.put(self);
+                Player.put(self);
                 log.info(user.getEmail() + " changed player name to " + newName);
                 sendGcm(user.getUserId());
 
@@ -122,7 +118,7 @@ public class StandingsServlet extends HttpServlet {
         }
 
         // Also send sync GCM to players who are friends with this user
-        final List<FriendLink> fLinks = mFriendLinkDao.getAllByProperty("mFriendUserId", userId);
+        final List<FriendLink> fLinks = FriendLink.getByFriendUserId(userId);
         for (final FriendLink fLink : fLinks) {
             deviceList.addAll(GCMDatastore.getDevicesForUser(fLink.mUserId));
         }
@@ -152,33 +148,33 @@ public class StandingsServlet extends HttpServlet {
         private Player self;
 
         public Standings(final User user) {
-            final RaceCorrectAnswers a = mCorrectAnswersDao.getByPropertyMax("mRaceId");
-            if (a != null)
-                race_id = a.getRaceId();
+            final RaceCorrectAnswers a = RaceCorrectAnswers.get();
+            if (a != null) {
+                race_id = a.mRaceId;
+            }
 
-            self = mPlayerDao.getByProperty("mUserId", user.getUserId());
+            self = Player.getByUserId(user.getUserId());
             if (self == null) {
                 log.info("User " + user + " not found in standings. Creating player...");
-                self = new Player(race_id, user);
+                self = new Player(user);
 
                 // Try to be nice and retrieve player name from last year
-                final Player oldSelf = mPlayerDao.getByPropertyAndYear("mUserId", user.getUserId(),
-                        Calendar.getInstance().get(Calendar.YEAR) - 1);
+                final Player oldSelf = Player.getLastYear(user.getUserId());
                 if ((oldSelf != null) && (oldSelf.name != null)) {
                     // Verify name not already taken by someone else this year
-                    final Player other = mPlayerDao.getByProperty("name", oldSelf.name);
+                    final Player other = Player.getByName(oldSelf.name);
                     if (other == null) {
                         self.name = oldSelf.name;
                     }
                 }
 
-                mPlayerDao.put(self);
+                Player.put(self);
             }
 
             int numToShow;
             if (race_id >= StandingsCommon.RACE_ID_CHASE_START) {
                 numToShow = STANDINGS_NUM_TO_SHOW_DURING_CHASE;
-                standings = mPlayerDao.getList("rank", numToShow);
+                standings = Player.getList(numToShow);
 
                 int numPlayersInChase = StandingsCommon.NUM_PLAYERS_IN_CHASE;
                 if (race_id >= StandingsCommon.RACE_ID_ROUND_1_END)
@@ -192,7 +188,7 @@ public class StandingsServlet extends HttpServlet {
 
                 for (final Player p : standings) {
                     if (p.rank <= numPlayersInChase) {
-                        if (p.rank == self.rank) {
+                        if (p.rank.equals(self.rank)) {
                             self.inChase = true;
                         }
                         p.inChase = true;
@@ -202,22 +198,22 @@ public class StandingsServlet extends HttpServlet {
                 }
             } else {
                 numToShow = STANDINGS_NUM_TO_SHOW_BEFORE_CHASE;
-                standings = mPlayerDao.getList("rank", numToShow);
+                standings = Player.getList(numToShow);
 
                 final List<Player> chasePlayers = StandingsCommon.getChasePlayers(standings);
                 for (final Player p : chasePlayers) {
-                    if (p.rank == self.rank) {
+                    if (p.rank.equals(self.rank)) {
                         self.inChase = true;
                     }
                     p.inChase = true;
                 }
             }
 
-            final List<FriendLink> fLinks = mFriendLinkDao.getAllForUser(user.getUserId());
+            final List<FriendLink> fLinks = FriendLink.getByUserId(user.getUserId());
             for (final FriendLink fLink : fLinks) {
-                final Player friend = mPlayerDao.getByProperty("mUserId", fLink.mFriendUserId);
+                final Player friend = Player.getByUserId(fLink.mFriendUserId);
                 if (friend == null) {
-                    mFriendLinkDao.delete(fLink);
+                    FriendLink.del(fLink);
                     continue;
                 }
 

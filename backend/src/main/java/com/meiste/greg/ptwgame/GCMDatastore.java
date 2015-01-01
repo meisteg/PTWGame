@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import org.datanucleus.util.StringUtils;
-
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -79,7 +77,7 @@ public final class GCMDatastore {
                 entity = new Entity(DEVICE_TYPE);
                 entity.setProperty(DEVICE_REG_ID_PROPERTY, regId);
             }
-            if (!StringUtils.isEmpty(userId)) {
+            if ((userId != null) && !userId.isEmpty()) {
                 entity.setProperty(DEVICE_USER_ID_PROPERTY, userId);
             }
             entity.setProperty(DEVICE_TIMESTAMP_PROPERTY, System.currentTimeMillis());
@@ -135,7 +133,7 @@ public final class GCMDatastore {
             final Query query = new Query(DEVICE_TYPE);
             final Iterable<Entity> entities =
                     datastore.prepare(query).asIterable(DEFAULT_FETCH_OPTIONS);
-            devices = new ArrayList<String>();
+            devices = new ArrayList<>();
             for (final Entity entity : entities) {
                 final String device = (String) entity.getProperty(DEVICE_REG_ID_PROPERTY);
                 devices.add(device);
@@ -153,7 +151,7 @@ public final class GCMDatastore {
      * Gets all registered devices for a user.
      */
     public static List<String> getDevicesForUser(final String userId) {
-        final List<String> devices = new ArrayList<String>();
+        final List<String> devices = new ArrayList<>();
         final Transaction txn = datastore.beginTransaction();
         try {
             final Query query = new Query(DEVICE_TYPE)
@@ -218,7 +216,7 @@ public final class GCMDatastore {
      * @return List of device registration IDs cleaned up
      */
     public static List<String> cleanupDevices(final boolean commit) {
-        final List<String> devices = new ArrayList<String>();
+        final List<String> devices = new ArrayList<>();
         final long expiration = System.currentTimeMillis() - DEVICE_REG_EXPIRATION;
 
         logger.info("Cleaning up registrations older than " + expiration +

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012, 2014 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.meiste.greg.ptwgame;
+package com.meiste.greg.ptwgame.servlets;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,18 +30,15 @@ import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
+import com.meiste.greg.ptwgame.entities.RaceAnswers;
+import com.meiste.greg.ptwgame.entities.RaceQuestions;
 
-@SuppressWarnings("serial")
 public class HistoryServlet extends HttpServlet {
-    private final ObjectifyDao<RaceQuestions> mQuestionsDao =
-            new ObjectifyDao<RaceQuestions>(RaceQuestions.class);
-    private final ObjectifyDao<RaceAnswers> mAnswersDao =
-            new ObjectifyDao<RaceAnswers>(RaceAnswers.class);
 
-    public void doGet(HttpServletRequest req, HttpServletResponse resp)
+    public void doGet(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
-        UserService userService = UserServiceFactory.getUserService();
-        User user = userService.getCurrentUser();
+        final UserService userService = UserServiceFactory.getUserService();
+        final User user = userService.getCurrentUser();
 
         if (user != null) {
             resp.setContentType("text/plain");
@@ -53,25 +50,25 @@ public class HistoryServlet extends HttpServlet {
 
     private class PlayerHistory {
         @Expose
-        private List<Integer> ids = new ArrayList<Integer>();
+        private List<Integer> ids = new ArrayList<>();
         @Expose
-        private List<RaceQuestions> questions = new ArrayList<RaceQuestions>();
+        private List<RaceQuestions> questions = new ArrayList<>();
         @Expose
         private List<RaceAnswers> answers;
 
-        PlayerHistory(User user) {
-            answers = mAnswersDao.getAllForUser(user.getUserId());
+        PlayerHistory(final User user) {
+            answers = RaceAnswers.getAllForUser(user.getUserId());
             if ((answers != null) && (answers.size() > 0)) {
-                for (RaceAnswers a : answers) {
-                    ids.add(a.getRaceId());
-                    questions.add(mQuestionsDao.get(a.getRaceId()));
+                for (final RaceAnswers a : answers) {
+                    ids.add(a.mRaceId);
+                    questions.add(RaceQuestions.get(a.mRaceId));
                 }
             }
         }
 
         public String toJson() {
             // Need to exclude fields without Expose for sub-classes
-            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+            final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
             return gson.toJson(this);
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2013-2014 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,13 @@
 package com.meiste.greg.ptwgame;
 
 import com.google.gson.Gson;
+import com.meiste.greg.ptwgame.entities.Player;
 
 public final class FriendRequest {
-    protected Player player;
-    protected String gcmRegId;
+    public Player player;
+    public String gcmRegId;
 
     public FriendRequest() {
-    }
-
-    public FriendRequest(final Player p, final String id) {
-        player = p;
-        gcmRegId = id;
-    }
-
-    public FriendRequest(final Player p) {
-        this(p, null);
     }
 
     public static FriendRequest fromJson(final String json) {

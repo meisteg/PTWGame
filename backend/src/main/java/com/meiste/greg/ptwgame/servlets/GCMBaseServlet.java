@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.meiste.greg.ptwgame;
+package com.meiste.greg.ptwgame.servlets;
 
 import java.io.IOException;
 import java.util.Enumeration;
@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Skeleton class for all servlets in this package.
  */
-@SuppressWarnings("serial")
 abstract class GCMBaseServlet extends HttpServlet {
 
     // change to true to allow GET calls

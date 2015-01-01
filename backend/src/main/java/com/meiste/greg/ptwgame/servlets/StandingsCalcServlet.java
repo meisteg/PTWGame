@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012, 2014 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012, 2014-2015 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-package com.meiste.greg.ptwgame;
+package com.meiste.greg.ptwgame.servlets;
+
+import com.meiste.greg.ptwgame.StandingsCommon;
+import com.meiste.greg.ptwgame.entities.Player;
+import com.meiste.greg.ptwgame.entities.RaceAnswers;
+import com.meiste.greg.ptwgame.entities.RaceCorrectAnswers;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,16 +29,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@SuppressWarnings("serial")
 public class StandingsCalcServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(StandingsCalcServlet.class.getName());
-
-    private final ObjectifyDao<RaceAnswers> mAnswersDao =
-            new ObjectifyDao<RaceAnswers>(RaceAnswers.class);
-    private final ObjectifyDao<RaceCorrectAnswers> mCorrectAnswersDao =
-            new ObjectifyDao<RaceCorrectAnswers>(RaceCorrectAnswers.class);
-    private final ObjectifyDao<Player> mPlayerDao =
-            new ObjectifyDao<Player>(Player.class);
 
     @Override
     public void doPost(final HttpServletRequest req, final HttpServletResponse resp)
@@ -41,7 +38,7 @@ public class StandingsCalcServlet extends HttpServlet {
         final int race_id = Integer.parseInt(req.getParameter("race_id"));
         log.info("Updating standings for race " + race_id);
 
-        final RaceCorrectAnswers answers = mCorrectAnswersDao.get(race_id);
+        final RaceCorrectAnswers answers = RaceCorrectAnswers.get(race_id);
         if (answers == null) {
             log.warning("Answers for race " + race_id + " not yet set.");
             resp.sendError(405);
@@ -63,12 +60,12 @@ public class StandingsCalcServlet extends HttpServlet {
             break;
         }
 
-        final Iterable<RaceAnswers> submissions = mAnswersDao.getAll(race_id);
+        final List<RaceAnswers> submissions = RaceAnswers.getAllForRace(race_id);
         for (final RaceAnswers a : submissions) {
-            Player player = mPlayerDao.getByProperty("mUserId", a.mUserId);
+            Player player = Player.getByUserId(a.mUserId);
             if (player == null) {
                 log.info("User " + a.mUserId + " not found in standings. Creating player...");
-                player = new Player(race_id, a.mUserId);
+                player = new Player(a.mUserId);
             }
 
             if (a.a1.equals(answers.a1)) {
@@ -85,16 +82,15 @@ public class StandingsCalcServlet extends HttpServlet {
                 player.points += 5;
 
             player.races++;
-            player.setRaceId(race_id);
-            mPlayerDao.put(player);
+            Player.put(player);
         }
 
         // TODO: Need to also add "submitted questions first" tie breaker
         int rank = 1;
-        final List<Player> players = mPlayerDao.getList("-points", "-wins", "-races");
+        final List<Player> players = Player.getForRanking();
         for (final Player player : players) {
             player.rank = rank++;
-            mPlayerDao.put(player);
+            Player.put(player);
         }
     }
 
@@ -102,13 +98,13 @@ public class StandingsCalcServlet extends HttpServlet {
         log.info("The Chase begins now!");
 
         final List<Player> standings =
-                mPlayerDao.getList("rank", StandingsCommon.NUM_PLAYERS_CHASE_ELIGIBLE);
+                Player.getList(StandingsCommon.NUM_PLAYERS_CHASE_ELIGIBLE);
         final List<Player> chasePlayers = StandingsCommon.getChasePlayers(standings);
 
         // Reset points
         for (final Player p : chasePlayers) {
             p.points = StandingsCommon.CHASE_POINTS_BASE + (p.wins * 10);
-            mPlayerDao.put(p);
+            Player.put(p);
         }
 
         // Done! No need to reset rank since regular scoring will handle it
@@ -118,10 +114,10 @@ public class StandingsCalcServlet extends HttpServlet {
         log.info("Beginning round 2 of the Chase");
 
         final List<Player> standings =
-                mPlayerDao.getList("rank", StandingsCommon.NUM_PLAYERS_IN_ROUND_2);
+                Player.getList(StandingsCommon.NUM_PLAYERS_IN_ROUND_2);
         for (final Player p : standings) {
             p.points += StandingsCommon.CHASE_POINTS_PER_ROUND;
-            mPlayerDao.put(p);
+            Player.put(p);
         }
 
         // Done! No need to subtract points from the other Chase players.
@@ -131,7 +127,7 @@ public class StandingsCalcServlet extends HttpServlet {
         log.info("Beginning round 3 of the Chase");
 
         final List<Player> standings =
-                mPlayerDao.getList("rank", StandingsCommon.NUM_PLAYERS_IN_ROUND_2);
+                Player.getList(StandingsCommon.NUM_PLAYERS_IN_ROUND_2);
 
         // Remove Round 2 bonus from the players who did not advance to Round 3.
         // No need to reset rank since regular scoring will handle it.
@@ -139,7 +135,7 @@ public class StandingsCalcServlet extends HttpServlet {
             final int index = standings.size() - 1;
             final Player p = standings.get(index);
             p.points -= StandingsCommon.CHASE_POINTS_PER_ROUND;
-            mPlayerDao.put(p);
+            Player.put(p);
             standings.remove(index);
         }
 
@@ -147,7 +143,7 @@ public class StandingsCalcServlet extends HttpServlet {
         // really make much sense.
         for (final Player p : standings) {
             p.points += StandingsCommon.CHASE_POINTS_PER_ROUND;
-            mPlayerDao.put(p);
+            Player.put(p);
         }
     }
 
@@ -155,7 +151,7 @@ public class StandingsCalcServlet extends HttpServlet {
         log.info("Final round of the Chase");
 
         final List<Player> standings =
-                mPlayerDao.getList("rank", StandingsCommon.NUM_PLAYERS_IN_ROUND_3);
+                Player.getList(StandingsCommon.NUM_PLAYERS_IN_ROUND_3);
 
         // Remove Round 2 and 3 bonus from the players who did not advance to Round 4.
         // No need to reset rank since regular scoring will handle it.
@@ -163,7 +159,7 @@ public class StandingsCalcServlet extends HttpServlet {
             final int index = standings.size() - 1;
             final Player p = standings.get(index);
             p.points -= (2 * StandingsCommon.CHASE_POINTS_PER_ROUND);
-            mPlayerDao.put(p);
+            Player.put(p);
             standings.remove(index);
         }
 
@@ -171,7 +167,7 @@ public class StandingsCalcServlet extends HttpServlet {
         // really make much sense.
         for (final Player p : standings) {
             p.points += StandingsCommon.CHASE_POINTS_PER_ROUND;
-            mPlayerDao.put(p);
+            Player.put(p);
         }
     }
 }

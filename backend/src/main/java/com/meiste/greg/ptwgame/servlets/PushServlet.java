@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.meiste.greg.ptwgame;
+package com.meiste.greg.ptwgame.servlets;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,13 +28,13 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
+import com.meiste.greg.ptwgame.GCMDatastore;
 
 /**
  * Servlet that adds a new message to all registered devices.
  * <p>
  * This servlet is used just by the browser (i.e., not device).
  */
-@SuppressWarnings("serial")
 public class PushServlet extends GCMBaseServlet {
 
     public static final String PARAMETER_MSG_TYPE = "msgType";
@@ -54,7 +54,7 @@ public class PushServlet extends GCMBaseServlet {
 
             // must split in chunks of 1000 devices (GCM limit)
             final int total = devices.size();
-            final List<String> partialDevices = new ArrayList<String>(total);
+            final List<String> partialDevices = new ArrayList<>(total);
             int counter = 0;
             int tasks = 0;
             for (final String device : devices) {

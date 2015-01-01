@@ -32,7 +32,7 @@ import javax.servlet.ServletContextListener;
  */
 public class ApiKeyInitializer implements ServletContextListener {
 
-    static final String ATTRIBUTE_ACCESS_KEY = "apiKey";
+    public static final String ATTRIBUTE_ACCESS_KEY = "apiKey";
 
     private static final String ENTITY_KIND = "Settings";
     private static final String ENTITY_KEY = "MyKey";

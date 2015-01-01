@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package com.meiste.greg.ptwgame;
+package com.meiste.greg.ptwgame.servlets;
+
+import com.meiste.greg.ptwgame.GCMDatastore;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,9 +33,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.appengine.labs.repackaged.com.google.common.base.Joiner;
-
-@SuppressWarnings("serial")
 public class DeviceCleanupServlet extends HttpServlet {
 
     private static final Logger logger =
@@ -43,11 +42,15 @@ public class DeviceCleanupServlet extends HttpServlet {
     public void doGet(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
         final List<String> devices = GCMDatastore.cleanupDevices(true);
+        final StringBuilder sb = new StringBuilder();
+        for (final String device : devices) {
+            sb.append(device).append("\n\n");
+        }
 
         final Properties props = new Properties();
         final Session session = Session.getDefaultInstance(props, null);
         final String msgSubject = "Cleaned up " + devices.size() + " registrations";
-        final String msgBody = Joiner.on("\n\n").join(devices);
+        final String msgBody = sb.toString();
         final Message msg = new MimeMessage(session);
         try {
             msg.setFrom(new InternetAddress("greg.meiste@gmail.com", "Pick The Winner"));

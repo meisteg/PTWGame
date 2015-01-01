@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2013 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012-2014 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.meiste.greg.ptwgame;
+package com.meiste.greg.ptwgame.servlets;
 
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 
@@ -29,18 +29,16 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
-import com.google.appengine.api.users.UserService;
-import com.google.appengine.api.users.UserServiceFactory;
+import com.meiste.greg.ptwgame.Driver;
+import com.meiste.greg.ptwgame.DriverDatastore;
+import com.meiste.greg.ptwgame.Race;
+import com.meiste.greg.ptwgame.Races;
+import com.meiste.greg.ptwgame.entities.RaceCorrectAnswers;
+import com.meiste.greg.ptwgame.entities.RaceQuestions;
 
-@SuppressWarnings("serial")
 public class AdminServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(AdminServlet.class.getName());
     private static final int MIN_NUM_DRIVERS = 43;
-
-    private final ObjectifyDao<RaceQuestions> mQuestionsDao =
-            new ObjectifyDao<RaceQuestions>(RaceQuestions.class);
-    private final ObjectifyDao<RaceCorrectAnswers> mAnswersDao =
-            new ObjectifyDao<RaceCorrectAnswers>(RaceCorrectAnswers.class);
 
     @Override
     public void doGet(final HttpServletRequest req, final HttpServletResponse resp)
@@ -51,14 +49,16 @@ public class AdminServlet extends HttpServlet {
     @Override
     public void doPost(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
-        final String op = req.getParameter("op");
-
-        if (op.equals("questions")) {
-            submitQuestions(req);
-        } else if (op.equals("answers")) {
-            submitAnswers(req);
-        } else if (op.equals("driver")) {
-            submitDriver(req);
+        switch (req.getParameter("op")) {
+            case "questions":
+                submitQuestions(req);
+                break;
+            case "answers":
+                submitAnswers(req);
+                break;
+            case "driver":
+                submitDriver(req);
+                break;
         }
 
         resp.sendRedirect("/admin.jsp");
@@ -70,13 +70,13 @@ public class AdminServlet extends HttpServlet {
         // they could inadvertently submit questions for the next race.
         final Race race = Races.getNext(false, true);
         if ((race != null) && !race.inProgress()) {
-            RaceQuestions q = mQuestionsDao.get(race.getId());
+            RaceQuestions q = RaceQuestions.get(race.getId());
             if (q == null) {
                 q = new RaceQuestions(race.getId());
                 q.setQ2(req.getParameter("q2"));
                 q.setQ3(req.getParameter("q3"));
 
-                final List<String> a2 = new ArrayList<String>();
+                final List<String> a2 = new ArrayList<>();
                 for (int i = 1; i <= 5; ++i) {
                     final String temp = req.getParameter("q2a" + i);
                     if (temp.length() > 0)
@@ -84,7 +84,7 @@ public class AdminServlet extends HttpServlet {
                 }
                 q.setA2(a2.toArray(new String[a2.size()]));
 
-                final List<String> a3 = new ArrayList<String>();
+                final List<String> a3 = new ArrayList<>();
                 for (int i = 1; i <= 5; ++i) {
                     final String temp = req.getParameter("q3a" + i).trim();
                     if (temp.length() > 0)
@@ -99,18 +99,18 @@ public class AdminServlet extends HttpServlet {
                     log.warning("Need at least " + MIN_NUM_DRIVERS + " drivers. Only submitted "
                             + driver_nums.length + " drivers. Questions not set.");
                 } else {
-                    q.drivers = new ArrayList<Driver>();
+                    q.drivers = new ArrayList<>();
                     for (final String driver_num : driver_nums) {
                         final int num = Integer.parseInt(driver_num);
                         q.drivers.add(DriverDatastore.findDriverByNumber(num));
                     }
-                    mQuestionsDao.put(q);
+                    RaceQuestions.put(q);
                 }
             } else {
                 log.warning("Race already has questions in database! Questions not set.");
             }
         } else {
-            log.warning("Race in progess! Questions not set.");
+            log.warning("Race in progress! Questions not set.");
         }
     }
 
@@ -121,20 +121,19 @@ public class AdminServlet extends HttpServlet {
             return;
         }
 
-        RaceCorrectAnswers a = mAnswersDao.get(race.getId());
+        RaceCorrectAnswers a = RaceCorrectAnswers.get(race.getId());
         if (a != null) {
             log.warning("Race already has answers in database! Answers not set.");
             return;
         }
 
-        final UserService userService = UserServiceFactory.getUserService();
-        a = new RaceCorrectAnswers(race.getId(), userService.getCurrentUser());
+        a = new RaceCorrectAnswers(race.getId());
         a.a1 = Integer.parseInt(req.getParameter("a1"));
         a.a2 = Integer.parseInt(req.getParameter("a2"));
         a.a3 = Integer.parseInt(req.getParameter("a3"));
         a.a4 = Integer.parseInt(req.getParameter("a4"));
         a.a5 = Integer.parseInt(req.getParameter("a5"));
-        mAnswersDao.put(a);
+        RaceCorrectAnswers.put(a);
 
         // Kick off task to calculate new standings
         final Queue queue = QueueFactory.getDefaultQueue();

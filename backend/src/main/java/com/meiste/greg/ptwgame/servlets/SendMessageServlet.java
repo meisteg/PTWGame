@@ -14,13 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.meiste.greg.ptwgame;
+package com.meiste.greg.ptwgame.servlets;
 
 import com.google.android.gcm.server.Constants;
 import com.google.android.gcm.server.Message;
 import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Result;
 import com.google.android.gcm.server.Sender;
+import com.meiste.greg.ptwgame.ApiKeyInitializer;
+import com.meiste.greg.ptwgame.GCMDatastore;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,7 +39,6 @@ import javax.servlet.http.HttpServletResponse;
  * <p>
  * This servlet is invoked by AppEngine's Push Queue mechanism.
  */
-@SuppressWarnings("serial")
 public class SendMessageServlet extends GCMBaseServlet {
 
     private static final String HEADER_QUEUE_COUNT = "X-AppEngine-TaskRetryCount";
@@ -142,7 +143,7 @@ public class SendMessageServlet extends GCMBaseServlet {
         if (multicastResult.getFailure() != 0) {
             // there were failures, check if any could be retried
             final List<Result> results = multicastResult.getResults();
-            final List<String> retriableRegIds = new ArrayList<String>();
+            final List<String> retriableRegIds = new ArrayList<>();
             for (int i = 0; i < results.size(); i++) {
                 final String error = results.get(i).getErrorCodeName();
                 if (error != null) {

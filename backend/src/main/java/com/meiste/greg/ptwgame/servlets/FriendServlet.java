@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2013-2014 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.meiste.greg.ptwgame;
+package com.meiste.greg.ptwgame.servlets;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,16 +32,14 @@ import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
+import com.meiste.greg.ptwgame.FriendRequest;
+import com.meiste.greg.ptwgame.GCMDatastore;
+import com.meiste.greg.ptwgame.entities.FriendLink;
+import com.meiste.greg.ptwgame.entities.Player;
 
-@SuppressWarnings("serial")
 public class FriendServlet extends HttpServlet {
 
     private static final Logger logger = Logger.getLogger(FriendServlet.class.getName());
-
-    private final ObjectifyDao<FriendLink> mFriendLinkDao =
-            new ObjectifyDao<FriendLink>(FriendLink.class);
-    private final ObjectifyDao<Player> mPlayerDao =
-            new ObjectifyDao<Player>(Player.class);
 
     @Override
     public void doPost(final HttpServletRequest req, final HttpServletResponse resp)
@@ -53,7 +51,7 @@ public class FriendServlet extends HttpServlet {
             return;
         }
 
-        final Player self = mPlayerDao.getByProperty("mUserId", user.getUserId());
+        final Player self = Player.getByUserId(user.getUserId());
         final String json = req.getReader().readLine();
         if ((self == null) || (json == null)) {
             resp.sendError(405);
@@ -68,36 +66,34 @@ public class FriendServlet extends HttpServlet {
 
         final Player other;
         if (fReq.player.rank != null)
-            other = mPlayerDao.getByProperty("rank", fReq.player.rank);
+            other = Player.getByRank(fReq.player.rank);
         else
-            other = mPlayerDao.getByProperty("name", fReq.player.name);
+            other = Player.getByName(fReq.player.name);
 
         if ((other == null) || other.mUserId.equals(user.getUserId())) {
             resp.sendError(405);
             return;
         }
 
-        FriendLink fLink = new FriendLink(user.getUserId(), other.mUserId);
-        FriendLink fLinkDB = mFriendLinkDao.getByExample(fLink);
-        final List<String> deviceList = new ArrayList<String>();
+        FriendLink fLinkDB = FriendLink.get(user.getUserId(), other.mUserId);
+        final List<String> deviceList = new ArrayList<>();
         if (fReq.player.friend) {
             if (fLinkDB == null) {
-                mFriendLinkDao.put(fLink);
+                FriendLink.put(new FriendLink(user.getUserId(), other.mUserId));
                 deviceList.addAll(getUserDevices(user.getUserId()));
             }
             // If GCM registration ID present, it indicates friend request
             // is the result of NFC. Need to friend in reverse as well, then
             // notify other player.
             if ((fReq.gcmRegId != null) && (GCMDatastore.findDeviceByRegId(fReq.gcmRegId) != null)) {
-                fLink = new FriendLink(other.mUserId, user.getUserId());
-                fLinkDB = mFriendLinkDao.getByExample(fLink);
+                fLinkDB = FriendLink.get(other.mUserId, user.getUserId());
                 if (fLinkDB == null) {
-                    mFriendLinkDao.put(fLink);
+                    FriendLink.put(new FriendLink(other.mUserId, user.getUserId()));
                     deviceList.addAll(getFriendDevices(other.mUserId, fReq.gcmRegId));
                 }
             }
         } else if (fLinkDB != null) {
-            mFriendLinkDao.delete(fLinkDB);
+            FriendLink.del(fLinkDB);
             deviceList.addAll(getUserDevices(user.getUserId()));
         }
 

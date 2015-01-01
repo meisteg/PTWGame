@@ -16,6 +16,8 @@
 
 package com.meiste.greg.ptwgame;
 
+import com.meiste.greg.ptwgame.entities.Player;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -45,7 +47,7 @@ public class StandingsCommon {
     public static final int CHASE_POINTS_PER_ROUND = 1000;
 
     public static List<Player> getChasePlayers(final List<Player> standings) {
-        final List<Player> chasePlayers = new ArrayList<Player>(standings);
+        final List<Player> chasePlayers = new ArrayList<>(standings);
 
         // Sanity check input for size to small or too large
         if (chasePlayers.size() <= 0) {

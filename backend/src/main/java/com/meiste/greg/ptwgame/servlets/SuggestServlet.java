@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012, 2014 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.meiste.greg.ptwgame;
+package com.meiste.greg.ptwgame.servlets;
 
 import java.io.IOException;
 
@@ -25,22 +25,22 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
+import com.meiste.greg.ptwgame.Race;
+import com.meiste.greg.ptwgame.Races;
+import com.meiste.greg.ptwgame.entities.Suggestion;
 
-@SuppressWarnings("serial")
 public class SuggestServlet extends HttpServlet {
-    private final ObjectifyDao<Suggestion> mSuggestDao =
-            new ObjectifyDao<Suggestion>(Suggestion.class);
 
-    public void doPost(HttpServletRequest req, HttpServletResponse resp)
+    public void doPost(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
-        Race race = Races.getNext(false, false);
+        final Race race = Races.getNext(false, false);
 
         if (race != null) {
-            UserService userService = UserServiceFactory.getUserService();
-            User user = userService.getCurrentUser();
-            String json = req.getReader().readLine();
+            final UserService userService = UserServiceFactory.getUserService();
+            final User user = userService.getCurrentUser();
+            final String json = req.getReader().readLine();
 
-            mSuggestDao.put(new Suggestion(race.getId(), user, json));
+            Suggestion.put(new Suggestion(race.getId(), user, json));
             resp.setContentType("text/plain");
             resp.getWriter().print(json);
         } else {

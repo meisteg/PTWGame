@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.meiste.greg.ptwgame;
+package com.meiste.greg.ptwgame.servlets;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,15 +30,14 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
+import com.meiste.greg.ptwgame.GCMDatastore;
+import com.meiste.greg.ptwgame.Race;
+import com.meiste.greg.ptwgame.Races;
+import com.meiste.greg.ptwgame.entities.RaceAnswers;
+import com.meiste.greg.ptwgame.entities.RaceQuestions;
 
-@SuppressWarnings("serial")
 public class QuestionsServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(QuestionsServlet.class.getName());
-
-    private final ObjectifyDao<RaceQuestions> mQuestionsDao =
-            new ObjectifyDao<RaceQuestions>(RaceQuestions.class);
-    private final ObjectifyDao<RaceAnswers> mAnswersDao =
-            new ObjectifyDao<RaceAnswers>(RaceAnswers.class);
 
     @Override
     public void doGet(final HttpServletRequest req, final HttpServletResponse resp)
@@ -49,11 +48,11 @@ public class QuestionsServlet extends HttpServlet {
         if (user != null) {
             final Race race = Races.getNext(false, true);
             if ((race != null) && race.inProgress()) {
-                RaceQuestions q = mQuestionsDao.get(race.getId());
+                RaceQuestions q = RaceQuestions.get(race.getId());
                 if (q == null) {
                     log.warning("No questions found for race " + race.getId() + "! Using default questions.");
                     q = new RaceQuestions(race.getId());
-                    mQuestionsDao.put(q);
+                    RaceQuestions.put(q);
                 }
 
                 resp.setContentType("text/plain");
@@ -75,12 +74,12 @@ public class QuestionsServlet extends HttpServlet {
         if (user != null) {
             final Race race = Races.getNext(false, true);
             if ((race != null) && race.inProgress()) {
-                RaceAnswers a = mAnswersDao.getByExample(new RaceAnswers(race.getId(), user));
+                RaceAnswers a = RaceAnswers.get(race.getId(), user);
                 if (a == null) {
                     a = RaceAnswers.fromJson(req.getReader().readLine());
                     a.setUserId(user);
                     a.setRaceId(race.getId());
-                    mAnswersDao.put(a);
+                    RaceAnswers.put(a);
                     sendGcm(user.getUserId());
                 }
 

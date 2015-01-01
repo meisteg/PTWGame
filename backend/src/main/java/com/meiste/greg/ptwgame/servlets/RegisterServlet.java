@@ -1,5 +1,6 @@
 /*
  * Copyright 2012 Google Inc.
+ * Copyright (C) 2013, 2014 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -13,30 +14,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.meiste.greg.ptwgame;
+package com.meiste.greg.ptwgame.servlets;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.users.User;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
+import com.meiste.greg.ptwgame.GCMDatastore;
+
 /**
- * Servlet that unregisters a device, whose registration id is identified by
+ * Servlet that registers a device, whose registration id is identified by
  * {@link #PARAMETER_REG_ID}.
+ *
  * <p>
  * The client app should call this servlet everytime it receives a
- * {@code com.google.android.c2dm.intent.REGISTRATION} with an
- * {@code unregistered} extra.
+ * {@code com.google.android.c2dm.intent.REGISTRATION C2DM} intent without an
+ * error or {@code unregistered} extra.
  */
-@SuppressWarnings("serial")
-public class UnregisterServlet extends GCMBaseServlet {
+public class RegisterServlet extends GCMBaseServlet {
 
     private static final String PARAMETER_REG_ID = "regId";
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+    protected void doPost(final HttpServletRequest req, final HttpServletResponse resp)
             throws ServletException {
-        String regId = getParameter(req, PARAMETER_REG_ID);
-        GCMDatastore.unregister(regId);
+        final String regId = getParameter(req, PARAMETER_REG_ID);
+        final UserService userService = UserServiceFactory.getUserService();
+        final User user = userService.getCurrentUser();
+        GCMDatastore.register(regId, (user != null ? user.getUserId() : null));
         setSuccess(resp);
     }
 }
