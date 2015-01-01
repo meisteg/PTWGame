@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012-2015 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.utils.SystemProperty;
 import com.meiste.greg.ptwgame.Driver;
 import com.meiste.greg.ptwgame.DriverDatastore;
 import com.meiste.greg.ptwgame.Race;
@@ -38,7 +39,9 @@ import com.meiste.greg.ptwgame.entities.RaceQuestions;
 
 public class AdminServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(AdminServlet.class.getName());
-    private static final int MIN_NUM_DRIVERS = 43;
+
+    private static final int MIN_NUM_DRIVERS =
+            (SystemProperty.environment.value() == SystemProperty.Environment.Value.Production) ? 43 : 1;
 
     @Override
     public void doGet(final HttpServletRequest req, final HttpServletResponse resp)
