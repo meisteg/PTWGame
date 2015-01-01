@@ -23,4 +23,9 @@
         <property name="firstName" direction="asc"/>
     </datastore-index>
 
+    <datastore-index kind="RaceQuestions" ancestor="false" source="manual">
+        <property name="mYear" direction="asc"/>
+        <property name="mRaceId" direction="asc"/>
+    </datastore-index>
+
 </datastore-indexes>
