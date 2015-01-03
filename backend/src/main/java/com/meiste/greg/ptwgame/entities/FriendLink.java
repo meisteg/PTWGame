@@ -21,6 +21,7 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Load;
 
 import java.util.List;
 
@@ -30,11 +31,17 @@ import static com.meiste.greg.ptwgame.OfyService.ofy;
 @Index
 @Cache
 public class FriendLink {
+    private static class LoadPlayer {}
+    private static class LoadFriend {}
+
     @SuppressWarnings("unused")
     @Id
     private Long id;
 
+    @Load(LoadPlayer.class)
     public Ref<Player> playerRef;
+
+    @Load(LoadFriend.class)
     public Ref<Player> friendRef;
 
     public static FriendLink get(final Player p, final Player f) {
@@ -45,11 +52,13 @@ public class FriendLink {
     }
 
     public static List<FriendLink> getByPlayer(final Player p) {
-        return ofy().load().type(FriendLink.class).filter("playerRef", p.getRef()).list();
+        return ofy().load().group(LoadFriend.class).type(FriendLink.class)
+                .filter("playerRef", p.getRef()).list();
     }
 
     public static List<FriendLink> getByFriend(final Player f) {
-        return ofy().load().type(FriendLink.class).filter("friendRef", f.getRef()).list();
+        return ofy().load().group(LoadPlayer.class).type(FriendLink.class)
+                .filter("friendRef", f.getRef()).list();
     }
 
     public static void put(final FriendLink flink) {
