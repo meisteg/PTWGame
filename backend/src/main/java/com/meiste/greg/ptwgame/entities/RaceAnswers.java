@@ -16,14 +16,15 @@
 
 package com.meiste.greg.ptwgame.entities;
 
-import com.google.appengine.api.users.User;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Load;
 
 import java.util.Calendar;
 import java.util.List;
@@ -34,6 +35,8 @@ import static com.meiste.greg.ptwgame.OfyService.ofy;
 @Index
 @Cache
 public class RaceAnswers {
+    private static class LoadPlayer {}
+
     @SuppressWarnings("unused")
     @Id
     private Long id;
@@ -41,7 +44,9 @@ public class RaceAnswers {
     public long timestamp = System.currentTimeMillis();
     public int mYear = Calendar.getInstance().get(Calendar.YEAR);
     public int mRaceId = -1;
-    public String mUserId;
+
+    @Load(LoadPlayer.class)
+    public Ref<Player> playerRef;
 
     @SuppressWarnings("unused")
     @Expose
@@ -63,23 +68,23 @@ public class RaceAnswers {
     @Expose
     public Integer a5;
 
-    public static RaceAnswers get(final int raceId, final User user) {
+    public static RaceAnswers get(final int raceId, final Player player) {
         return ofy().load().type(RaceAnswers.class)
                 .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))
                 .filter("mRaceId", raceId)
-                .filter("mUserId", user.getUserId())
+                .filter("playerRef", player.getRef())
                 .first().now();
     }
 
-    public static List<RaceAnswers> getAllForUser(final String userId) {
+    public static List<RaceAnswers> getAllForUser(final Player player) {
         return ofy().load().type(RaceAnswers.class)
                 .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))
-                .filter("mUserId", userId)
+                .filter("playerRef", player.getRef())
                 .list();
     }
 
     public static List<RaceAnswers> getAllForRace(final int raceId) {
-        return ofy().load().type(RaceAnswers.class)
+        return ofy().load().group(LoadPlayer.class).type(RaceAnswers.class)
                 .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))
                 .filter("mRaceId", raceId)
                 .list();
@@ -94,8 +99,12 @@ public class RaceAnswers {
         // Needed by objectify
     }
 
-    public void setUserId(final User user) {
-        mUserId = user.getUserId();
+    public void setPlayer(final Player player) {
+        playerRef = player.getRef();
+    }
+
+    public Player getPlayer() {
+        return playerRef.get();
     }
 
     public void setRaceId(final int id) {

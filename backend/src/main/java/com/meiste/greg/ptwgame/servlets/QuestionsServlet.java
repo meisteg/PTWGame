@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012-2015 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.google.appengine.api.users.UserServiceFactory;
 import com.meiste.greg.ptwgame.GCMDatastore;
 import com.meiste.greg.ptwgame.Race;
 import com.meiste.greg.ptwgame.Races;
+import com.meiste.greg.ptwgame.entities.Player;
 import com.meiste.greg.ptwgame.entities.RaceAnswers;
 import com.meiste.greg.ptwgame.entities.RaceQuestions;
 
@@ -72,12 +73,13 @@ public class QuestionsServlet extends HttpServlet {
         final User user = userService.getCurrentUser();
 
         if (user != null) {
+            final Player player = Player.getByUserId(user.getUserId());
             final Race race = Races.getNext(false, true);
-            if ((race != null) && race.inProgress()) {
-                RaceAnswers a = RaceAnswers.get(race.getId(), user);
+            if ((player != null) && (race != null) && race.inProgress()) {
+                RaceAnswers a = RaceAnswers.get(race.getId(), player);
                 if (a == null) {
                     a = RaceAnswers.fromJson(req.getReader().readLine());
-                    a.setUserId(user);
+                    a.setPlayer(player);
                     a.setRaceId(race.getId());
                     RaceAnswers.put(a);
                     sendGcm(user.getUserId());

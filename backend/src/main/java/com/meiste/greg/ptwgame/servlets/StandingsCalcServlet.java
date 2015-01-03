@@ -62,11 +62,7 @@ public class StandingsCalcServlet extends HttpServlet {
 
         final List<RaceAnswers> submissions = RaceAnswers.getAllForRace(race_id);
         for (final RaceAnswers a : submissions) {
-            Player player = Player.getByUserId(a.mUserId);
-            if (player == null) {
-                log.info("User " + a.mUserId + " not found in standings. Creating player...");
-                player = new Player(a.mUserId);
-            }
+            final Player player = a.getPlayer();
 
             if (a.a1.equals(answers.a1)) {
                 player.wins++;

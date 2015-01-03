@@ -125,14 +125,6 @@ public class Player {
         points = races = wins = 0;
     }
 
-    @Deprecated
-    public Player(final String userId) {
-        mUserId = userId;
-
-        // Do not set rank. A null rank indicates "not ranked".
-        points = races = wins = 0;
-    }
-
     public boolean isIdentifiable() {
         return (name != null) || (rank != null);
     }

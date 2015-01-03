@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012, 2014 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012, 2014-2015 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
+import com.meiste.greg.ptwgame.entities.Player;
 import com.meiste.greg.ptwgame.entities.RaceAnswers;
 import com.meiste.greg.ptwgame.entities.RaceQuestions;
 
@@ -57,11 +58,14 @@ public class HistoryServlet extends HttpServlet {
         private List<RaceAnswers> answers;
 
         PlayerHistory(final User user) {
-            answers = RaceAnswers.getAllForUser(user.getUserId());
-            if ((answers != null) && (answers.size() > 0)) {
-                for (final RaceAnswers a : answers) {
-                    ids.add(a.mRaceId);
-                    questions.add(RaceQuestions.get(a.mRaceId));
+            final Player player = Player.getByUserId(user.getUserId());
+            if (player != null) {
+                answers = RaceAnswers.getAllForUser(player);
+                if ((answers != null) && (answers.size() > 0)) {
+                    for (final RaceAnswers a : answers) {
+                        ids.add(a.mRaceId);
+                        questions.add(RaceQuestions.get(a.mRaceId));
+                    }
                 }
             }
         }
