@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2014 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2013-2015 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,20 +75,20 @@ public class FriendServlet extends HttpServlet {
             return;
         }
 
-        FriendLink fLinkDB = FriendLink.get(user.getUserId(), other.mUserId);
+        FriendLink fLinkDB = FriendLink.get(self, other);
         final List<String> deviceList = new ArrayList<>();
         if (fReq.player.friend) {
             if (fLinkDB == null) {
-                FriendLink.put(new FriendLink(user.getUserId(), other.mUserId));
+                FriendLink.put(new FriendLink(self, other));
                 deviceList.addAll(getUserDevices(user.getUserId()));
             }
             // If GCM registration ID present, it indicates friend request
             // is the result of NFC. Need to friend in reverse as well, then
             // notify other player.
             if ((fReq.gcmRegId != null) && (GCMDatastore.findDeviceByRegId(fReq.gcmRegId) != null)) {
-                fLinkDB = FriendLink.get(other.mUserId, user.getUserId());
+                fLinkDB = FriendLink.get(other, self);
                 if (fLinkDB == null) {
-                    FriendLink.put(new FriendLink(other.mUserId, user.getUserId()));
+                    FriendLink.put(new FriendLink(other, self));
                     deviceList.addAll(getFriendDevices(other.mUserId, fReq.gcmRegId));
                 }
             }

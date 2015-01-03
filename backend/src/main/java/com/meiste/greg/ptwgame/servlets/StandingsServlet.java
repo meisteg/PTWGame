@@ -99,7 +99,7 @@ public class StandingsServlet extends HttpServlet {
                 self.name = newName;
                 Player.put(self);
                 log.info(user.getEmail() + " changed player name to " + newName);
-                sendGcm(user.getUserId());
+                sendGcm(self);
 
                 doGet(req, resp);
             } else
@@ -109,18 +109,18 @@ public class StandingsServlet extends HttpServlet {
         }
     }
 
-    private void sendGcm(final String userId) {
-        final List<String> deviceList = GCMDatastore.getDevicesForUser(userId);
+    private void sendGcm(final Player player) {
+        final List<String> deviceList = GCMDatastore.getDevicesForUser(player.mUserId);
         if (deviceList.size() == 1) {
             // If just one device, don't need to ping it. The device already is aware
             // of the situation. Only need to ping when where are multiple devices.
             deviceList.clear();
         }
 
-        // Also send sync GCM to players who are friends with this user
-        final List<FriendLink> fLinks = FriendLink.getByFriendUserId(userId);
+        // Also send sync GCM to players who are friends with this player
+        final List<FriendLink> fLinks = FriendLink.getByFriend(player);
         for (final FriendLink fLink : fLinks) {
-            deviceList.addAll(GCMDatastore.getDevicesForUser(fLink.mUserId));
+            deviceList.addAll(GCMDatastore.getDevicesForUser(fLink.getPlayer().mUserId));
         }
 
         if (!deviceList.isEmpty()) {
@@ -209,9 +209,9 @@ public class StandingsServlet extends HttpServlet {
                 }
             }
 
-            final List<FriendLink> fLinks = FriendLink.getByUserId(user.getUserId());
+            final List<FriendLink> fLinks = FriendLink.getByPlayer(self);
             for (final FriendLink fLink : fLinks) {
-                final Player friend = Player.getByUserId(fLink.mFriendUserId);
+                final Player friend = fLink.getFriend();
                 if (friend == null) {
                     FriendLink.del(fLink);
                     continue;

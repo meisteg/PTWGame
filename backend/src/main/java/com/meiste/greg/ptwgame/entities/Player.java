@@ -18,6 +18,7 @@ package com.meiste.greg.ptwgame.entities;
 
 import com.google.appengine.api.users.User;
 import com.google.gson.annotations.Expose;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -134,5 +135,9 @@ public class Player {
 
     public boolean isIdentifiable() {
         return (name != null) || (rank != null);
+    }
+
+    public Ref<Player> getRef() {
+        return Ref.create(this);
     }
 }

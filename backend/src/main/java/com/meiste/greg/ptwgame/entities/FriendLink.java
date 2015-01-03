@@ -16,12 +16,12 @@
 
 package com.meiste.greg.ptwgame.entities;
 
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 
-import java.util.Calendar;
 import java.util.List;
 
 import static com.meiste.greg.ptwgame.OfyService.ofy;
@@ -34,31 +34,22 @@ public class FriendLink {
     @Id
     private Long id;
 
-    public int mYear = Calendar.getInstance().get(Calendar.YEAR);
-    public String mUserId;
-    public String mFriendUserId;
+    public Ref<Player> playerRef;
+    public Ref<Player> friendRef;
 
-    public static FriendLink get(final String userId, final String friendId) {
+    public static FriendLink get(final Player p, final Player f) {
         return ofy().load().type(FriendLink.class)
-                .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))
-                .filter("mUserId", userId)
-                .filter("mFriendUserId", friendId)
+                .filter("playerRef", p.getRef())
+                .filter("friendRef", f.getRef())
                 .first().now();
     }
 
-    public static List<FriendLink> getByUserId(final String userId) {
-        return getByProperty("mUserId", userId);
+    public static List<FriendLink> getByPlayer(final Player p) {
+        return ofy().load().type(FriendLink.class).filter("playerRef", p.getRef()).list();
     }
 
-    public static List<FriendLink> getByFriendUserId(final String friendUserId) {
-        return getByProperty("mFriendUserId", friendUserId);
-    }
-
-    private static List<FriendLink> getByProperty(final String propName, final Object propValue) {
-        return ofy().load().type(FriendLink.class)
-                .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))
-                .filter(propName, propValue)
-                .list();
+    public static List<FriendLink> getByFriend(final Player f) {
+        return ofy().load().type(FriendLink.class).filter("friendRef", f.getRef()).list();
     }
 
     public static void put(final FriendLink flink) {
@@ -74,8 +65,16 @@ public class FriendLink {
         // Needed by objectify
     }
 
-    public FriendLink(final String userId, final String friendId) {
-        mUserId = userId;
-        mFriendUserId = friendId;
+    public FriendLink(final Player p, final Player f) {
+        playerRef = p.getRef();
+        friendRef = f.getRef();
+    }
+
+    public Player getPlayer() {
+        return playerRef.get();
+    }
+
+    public Player getFriend() {
+        return friendRef.get();
     }
 }
