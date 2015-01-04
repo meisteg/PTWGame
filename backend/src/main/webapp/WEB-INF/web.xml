@@ -70,6 +70,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
         <servlet-name>DeviceCleanup</servlet-name>
         <servlet-class>com.meiste.greg.ptwgame.servlets.DeviceCleanupServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>Schedule</servlet-name>
+        <servlet-class>com.meiste.greg.ptwgame.servlets.ScheduleServlet</servlet-class>
+    </servlet>
 
     <servlet-mapping>
         <servlet-name>Questions</servlet-name>
@@ -122,6 +126,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
     <servlet-mapping>
         <servlet-name>DeviceCleanup</servlet-name>
         <url-pattern>/tasks/devcleanup</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Schedule</servlet-name>
+        <url-pattern>/schedule</url-pattern>
     </servlet-mapping>
 
     <welcome-file-list>
