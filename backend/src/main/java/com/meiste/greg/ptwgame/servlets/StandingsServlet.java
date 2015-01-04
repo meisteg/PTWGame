@@ -63,7 +63,7 @@ public class StandingsServlet extends HttpServlet {
         final User user = userService.getCurrentUser();
 
         if (user != null) {
-            final Player self = Player.getByUserId(user.getUserId());
+            final Player self = Player.getByUser(user);
             if (self != null) {
                 final String json = req.getReader().readLine();
                 String newName = null;
@@ -153,7 +153,7 @@ public class StandingsServlet extends HttpServlet {
                 race_id = a.mRaceId;
             }
 
-            self = Player.getByUserId(user.getUserId());
+            self = Player.getByUser(user);
             if (self == null) {
                 log.info("User " + user + " not found in standings. Creating player...");
                 self = new Player(user);

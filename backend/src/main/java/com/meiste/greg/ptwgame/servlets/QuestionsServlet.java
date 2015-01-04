@@ -73,7 +73,7 @@ public class QuestionsServlet extends HttpServlet {
         final User user = userService.getCurrentUser();
 
         if (user != null) {
-            final Player player = Player.getByUserId(user.getUserId());
+            final Player player = Player.getByUser(user);
             final Race race = Races.getNext(false, true);
             if ((player != null) && (race != null) && race.inProgress()) {
                 RaceAnswers a = RaceAnswers.get(race.getId(), player);

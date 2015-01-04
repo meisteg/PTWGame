@@ -58,7 +58,7 @@ public class HistoryServlet extends HttpServlet {
         private List<RaceAnswers> answers;
 
         PlayerHistory(final User user) {
-            final Player player = Player.getByUserId(user.getUserId());
+            final Player player = Player.getByUser(user);
             if (player != null) {
                 answers = RaceAnswers.getAllForUser(player);
                 if ((answers != null) && (answers.size() > 0)) {

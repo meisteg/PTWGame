@@ -51,7 +51,7 @@ public class FriendServlet extends HttpServlet {
             return;
         }
 
-        final Player self = Player.getByUserId(user.getUserId());
+        final Player self = Player.getByUser(user);
         final String json = req.getReader().readLine();
         if ((self == null) || (json == null)) {
             resp.sendError(405);

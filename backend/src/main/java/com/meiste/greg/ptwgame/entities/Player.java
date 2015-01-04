@@ -65,8 +65,8 @@ public class Player {
     @Ignore
     public boolean inChase;
 
-    public static Player getByUserId(final String userId) {
-        return getByProperty("mUserId", userId);
+    public static Player getByUser(final User user) {
+        return getByProperty("mUserId", user.getUserId());
     }
 
     public static Player getByRank(final int rank) {
