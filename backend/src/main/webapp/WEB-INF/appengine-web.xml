@@ -18,14 +18,4 @@
     <page name="PTW Admin" url="/admin" />
   </admin-console>
 
-  <static-files>
-    <include path="/**.png" expiration="7d" />
-    <include path="/**.js"  expiration="7d" />
-    <include path="/**.css" expiration="7d" />
-    <include path="/**.ico" expiration="7d" />
-
-    <include path="/rule_book" />
-    <include path="/schedule" />
-  </static-files>
-
 </appengine-web-app>
