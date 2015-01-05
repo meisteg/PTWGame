@@ -7,8 +7,7 @@
 
 <%@ page import="com.meiste.greg.ptwgame.Driver" %>
 <%@ page import="com.meiste.greg.ptwgame.DriverDatastore" %>
-<%@ page import="com.meiste.greg.ptwgame.Race" %>
-<%@ page import="com.meiste.greg.ptwgame.Races" %>
+<%@ page import="com.meiste.greg.ptwgame.entities.Race" %>
 <%@ page import="com.meiste.greg.ptwgame.entities.RaceCorrectAnswers" %>
 <%@ page import="com.meiste.greg.ptwgame.entities.RaceQuestions" %>
 
@@ -36,9 +35,9 @@
         }
     }
     if (questions != null) {
-        final Race race = Race.getInstance(questions.mRaceId);
+        final Race race = Race.get(questions.mRaceId);
 %>
-        <h2>Submit Answers for <%= race.getTrack(Race.NAME_LONG) %></h2>
+        <h2>Submit Answers for <%= race.trackNameLong %></h2>
 <%
         if (race.isFuture()) {
 %>
@@ -48,7 +47,7 @@
 %>
             <form action="/admin" method="post">
                 <input type="hidden" name="op" value="answers">
-                <input type="hidden" name="race_id" value="<%= race.getId() %>">
+                <input type="hidden" name="race_id" value="<%= race.id %>">
                 <p>Pick The Winner</p>
                 <div><select name="a1">
 <%
@@ -104,10 +103,10 @@
 <%
         }
     } else {
-        final Race race = Races.getNext(false, false);
+        final Race race = Race.getNext(false, false);
         if (race != null) {
 %>
-            <div id="submit_questions"><h2>Submit Questions for <%= race.getTrack(Race.NAME_LONG) %></h2>
+            <div id="submit_questions"><h2>Submit Questions for <%= race.trackNameLong %></h2>
             <form action="/admin" method="post">
                 <input type="hidden" name="op" value="questions">
                 
@@ -115,9 +114,9 @@
 <%
                 final List<Driver> drivers = DriverDatastore.getAll();
                 RaceQuestions prq = null;
-                int rId = race.getId();
-                while ((rId > 0) && (prq == null)) {
-                    prq = RaceQuestions.get(--rId);
+                final Race prevRace = Race.getPrev(race);
+                if (prevRace != null) {
+                    prq = RaceQuestions.get(prevRace);
                 }
                 for (final Driver d : drivers) {
                     boolean selected = false;

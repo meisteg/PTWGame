@@ -31,9 +31,8 @@ import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.meiste.greg.ptwgame.GCMDatastore;
-import com.meiste.greg.ptwgame.Race;
-import com.meiste.greg.ptwgame.Races;
 import com.meiste.greg.ptwgame.entities.Player;
+import com.meiste.greg.ptwgame.entities.Race;
 import com.meiste.greg.ptwgame.entities.RaceAnswers;
 import com.meiste.greg.ptwgame.entities.RaceQuestions;
 
@@ -47,12 +46,12 @@ public class QuestionsServlet extends HttpServlet {
         final User user = userService.getCurrentUser();
 
         if (user != null) {
-            final Race race = Races.getNext(false, true);
+            final Race race = Race.getNext(false, true);
             if ((race != null) && race.inProgress()) {
-                RaceQuestions q = RaceQuestions.get(race.getId());
+                RaceQuestions q = RaceQuestions.get(race);
                 if (q == null) {
-                    log.warning("No questions found for race " + race.getId() + "! Using default questions.");
-                    q = new RaceQuestions(race.getId());
+                    log.warning("No questions found for race! Using default questions.");
+                    q = new RaceQuestions(race);
                     RaceQuestions.put(q);
                 }
 
@@ -74,13 +73,13 @@ public class QuestionsServlet extends HttpServlet {
 
         if (user != null) {
             final Player player = Player.getByUser(user);
-            final Race race = Races.getNext(false, true);
+            final Race race = Race.getNext(false, true);
             if ((player != null) && (race != null) && race.inProgress()) {
-                RaceAnswers a = RaceAnswers.get(race.getId(), player);
+                RaceAnswers a = RaceAnswers.get(race, player);
                 if (a == null) {
                     a = RaceAnswers.fromJson(req.getReader().readLine());
                     a.setPlayer(player);
-                    a.setRaceId(race.getId());
+                    a.setRace(race);
                     RaceAnswers.put(a);
                     sendGcm(user.getUserId());
                 }

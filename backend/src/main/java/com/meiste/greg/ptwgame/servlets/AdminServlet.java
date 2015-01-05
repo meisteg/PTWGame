@@ -32,8 +32,7 @@ import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.utils.SystemProperty;
 import com.meiste.greg.ptwgame.Driver;
 import com.meiste.greg.ptwgame.DriverDatastore;
-import com.meiste.greg.ptwgame.Race;
-import com.meiste.greg.ptwgame.Races;
+import com.meiste.greg.ptwgame.entities.Race;
 import com.meiste.greg.ptwgame.entities.RaceCorrectAnswers;
 import com.meiste.greg.ptwgame.entities.RaceQuestions;
 
@@ -71,11 +70,11 @@ public class AdminServlet extends HttpServlet {
         // Set allowInProgress to true here in case a tardy admin tries to
         // submit questions at the last second. If allowInProgress is false
         // they could inadvertently submit questions for the next race.
-        final Race race = Races.getNext(false, true);
+        final Race race = Race.getNext(false, true);
         if ((race != null) && !race.inProgress()) {
-            RaceQuestions q = RaceQuestions.get(race.getId());
+            RaceQuestions q = RaceQuestions.get(race);
             if (q == null) {
-                q = new RaceQuestions(race.getId());
+                q = new RaceQuestions(race);
                 q.setQ2(req.getParameter("q2"));
                 q.setQ3(req.getParameter("q3"));
 
@@ -118,19 +117,20 @@ public class AdminServlet extends HttpServlet {
     }
 
     private void submitAnswers(final HttpServletRequest req) {
-        final Race race = Race.getInstance(Integer.parseInt(req.getParameter("race_id")));
+        final String raceEntityId = req.getParameter("race_id");
+        final Race race = Race.get(Long.parseLong(raceEntityId));
         if (race.isFuture()) {
             log.warning("Race not finished! Answers not set.");
             return;
         }
 
-        RaceCorrectAnswers a = RaceCorrectAnswers.get(race.getId());
+        RaceCorrectAnswers a = RaceCorrectAnswers.get(race);
         if (a != null) {
             log.warning("Race already has answers in database! Answers not set.");
             return;
         }
 
-        a = new RaceCorrectAnswers(race.getId());
+        a = new RaceCorrectAnswers(race);
         a.a1 = Integer.parseInt(req.getParameter("a1"));
         a.a2 = Integer.parseInt(req.getParameter("a2"));
         a.a3 = Integer.parseInt(req.getParameter("a3"));
@@ -140,7 +140,7 @@ public class AdminServlet extends HttpServlet {
 
         // Kick off task to calculate new standings
         final Queue queue = QueueFactory.getDefaultQueue();
-        queue.add(withUrl("/tasks/standings").param("race_id", String.valueOf(race.getId())));
+        queue.add(withUrl("/tasks/standings").param(StandingsCalcServlet.PARAM_RACE, raceEntityId));
     }
 
     private void submitDriver(final HttpServletRequest req) {

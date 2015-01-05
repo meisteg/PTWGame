@@ -68,10 +68,10 @@ public class RaceAnswers {
     @Expose
     public Integer a5;
 
-    public static RaceAnswers get(final int raceId, final Player player) {
+    public static RaceAnswers get(final Race race, final Player player) {
         return ofy().load().type(RaceAnswers.class)
                 .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))
-                .filter("mRaceId", raceId)
+                .filter("mRaceId", race.raceId)
                 .filter("playerRef", player.getRef())
                 .first().now();
     }
@@ -83,10 +83,10 @@ public class RaceAnswers {
                 .list();
     }
 
-    public static List<RaceAnswers> getAllForRace(final int raceId) {
+    public static List<RaceAnswers> getAllForRace(final Race race) {
         return ofy().load().group(LoadPlayer.class).type(RaceAnswers.class)
                 .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))
-                .filter("mRaceId", raceId)
+                .filter("mRaceId", race.raceId)
                 .list();
     }
 
@@ -107,8 +107,8 @@ public class RaceAnswers {
         return playerRef.get();
     }
 
-    public void setRaceId(final int id) {
-        mRaceId = id;
+    public void setRace(final Race race) {
+        mRaceId = race.raceId;
     }
 
     public static RaceAnswers fromJson(final String json) {

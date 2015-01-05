@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012, 2014 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2012, 2014-2015 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,10 @@ public class RaceCorrectAnswers {
                 .limit(1).first().now();
     }
 
+    public static RaceCorrectAnswers get(final Race race) {
+        return get(race.raceId);
+    }
+
     public static RaceCorrectAnswers get(final int raceId) {
         return get(Calendar.getInstance().get(Calendar.YEAR), raceId);
     }
@@ -79,8 +83,8 @@ public class RaceCorrectAnswers {
     public RaceCorrectAnswers() {
     }
 
-    public RaceCorrectAnswers(final int raceId) {
-        mRaceId = raceId;
+    public RaceCorrectAnswers(final Race race) {
+        mRaceId = race.raceId;
     }
 
     public String toJson() {

@@ -63,6 +63,10 @@ public class RaceQuestions {
     @Expose
     public String[] a3 = {"Yes", "No"};
 
+    public static RaceQuestions get(final Race race) {
+        return get(race.raceId);
+    }
+
     public static RaceQuestions get(final int raceId) {
         return ofy().load().type(RaceQuestions.class)
                 .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))
@@ -88,8 +92,8 @@ public class RaceQuestions {
         // Needed by objectify
     }
 
-    public RaceQuestions(final int raceId) {
-        mRaceId = raceId;
+    public RaceQuestions(final Race race) {
+        mRaceId = race.raceId;
     }
 
     public void setQ2(final String q) {

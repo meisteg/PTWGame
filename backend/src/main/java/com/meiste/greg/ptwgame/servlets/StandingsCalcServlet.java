@@ -18,6 +18,7 @@ package com.meiste.greg.ptwgame.servlets;
 
 import com.meiste.greg.ptwgame.StandingsCommon;
 import com.meiste.greg.ptwgame.entities.Player;
+import com.meiste.greg.ptwgame.entities.Race;
 import com.meiste.greg.ptwgame.entities.RaceAnswers;
 import com.meiste.greg.ptwgame.entities.RaceCorrectAnswers;
 
@@ -32,20 +33,22 @@ import javax.servlet.http.HttpServletResponse;
 public class StandingsCalcServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(StandingsCalcServlet.class.getName());
 
+    public static final String PARAM_RACE = "race_id";
+
     @Override
     public void doPost(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
-        final int race_id = Integer.parseInt(req.getParameter("race_id"));
-        log.info("Updating standings for race " + race_id);
+        final Race race = Race.get(Long.parseLong(req.getParameter(PARAM_RACE)));
+        log.info("Updating standings for " + race.name);
 
-        final RaceCorrectAnswers answers = RaceCorrectAnswers.get(race_id);
+        final RaceCorrectAnswers answers = RaceCorrectAnswers.get(race);
         if (answers == null) {
-            log.warning("Answers for race " + race_id + " not yet set.");
+            log.warning("Answers for race not yet set.");
             resp.sendError(405);
             return;
         }
 
-        switch (race_id) {
+        switch (race.raceId) {
         case StandingsCommon.RACE_ID_CHASE_START:
             startChase();
             break;
@@ -60,7 +63,7 @@ public class StandingsCalcServlet extends HttpServlet {
             break;
         }
 
-        final List<RaceAnswers> submissions = RaceAnswers.getAllForRace(race_id);
+        final List<RaceAnswers> submissions = RaceAnswers.getAllForRace(race);
         for (final RaceAnswers a : submissions) {
             final Player player = a.getPlayer();
 

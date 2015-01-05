@@ -52,8 +52,8 @@ public class Suggestion {
         // Needed by objectify
     }
 
-    public Suggestion(final int raceId, final User user, final String json) {
-        mRaceId = raceId;
+    public Suggestion(final Race race, final User user, final String json) {
+        mRaceId = race.raceId;
         mUserEmail = (user != null) ? user.getEmail() : null;
 
         // Limit the input to 200 characters. Done here instead of the app
