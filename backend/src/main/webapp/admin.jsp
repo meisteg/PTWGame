@@ -1,5 +1,4 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 
 <%@ page import="com.google.appengine.api.users.UserService" %>
@@ -177,7 +176,6 @@
                     $("#submit_questions").hide();
                     $("#submit_driver").show();
                     $("#driver_fname").focus();
-                    
                 });
                 $("#cancel_driver").click(function() {
                     $("#driver_form")[0].reset();

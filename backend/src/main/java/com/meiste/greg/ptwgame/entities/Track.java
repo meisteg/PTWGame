@@ -18,6 +18,9 @@ package com.meiste.greg.ptwgame.entities;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
+
+import java.util.List;
 
 import static com.meiste.greg.ptwgame.OfyService.ofy;
 
@@ -25,11 +28,12 @@ import static com.meiste.greg.ptwgame.OfyService.ofy;
 @Cache
 public class Track {
 
-    @SuppressWarnings("unused")
     @Id
-    private Long id;
+    public Long id;
 
+    @Index
     public String longName;
+
     public String shortName;
     public String length;
     public String layout;
@@ -38,6 +42,16 @@ public class Track {
 
     public Track() {
         // Nothing to do
+    }
+
+    // Used by schedule.jsp
+    @SuppressWarnings("unused")
+    public static List<Track> getAll() {
+        return ofy().load().type(Track.class).order("longName").list();
+    }
+
+    public static Track get(final long id) {
+        return ofy().load().type(Track.class).id(id).now();
     }
 
     public static void put(final Track track) {

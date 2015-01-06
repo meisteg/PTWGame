@@ -181,6 +181,10 @@ public final class Race {
         return null;
     }
 
+    public static List<Race> getList(final int limit) {
+        return ofy().load().type(Race.class).order("startTime").limit(limit).list();
+    }
+
     public static void put(final Race race) {
         ofy().save().entity(race).now();
     }
