@@ -69,6 +69,8 @@ public final class Race {
     @Load
     public Ref<Track> trackRef;
 
+    public String logoBlobKey;
+
     @Ignore
     @Expose
     @SerializedName("mTrackLong")

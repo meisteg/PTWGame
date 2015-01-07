@@ -77,8 +77,9 @@
 %>
                     <table>
                         <tr>
+                            <th>Logo</th>
                             <th>ID</th>
-                            <th>Race Num</th>
+                            <th>Num</th>
                             <th>Name</th>
                             <th>Track</th>
                             <th>TV</th>
@@ -91,6 +92,7 @@
                         for (final Race race : races) {
 %>
                             <tr>
+                                <td><img src="img/race/<%= race.raceId %>.png" width="108" height="90"></td>
                                 <td><%= race.raceId %></td>
                                 <td><%= race.raceNum %></td>
                                 <td><%= race.name %></td>
