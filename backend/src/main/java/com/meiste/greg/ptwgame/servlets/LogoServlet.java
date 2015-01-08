@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public class LogoServlet extends HttpServlet {
 
-    private static final Logger log = Logger.getLogger(ScheduleServlet.class.getName());
+    private static final Logger log = Logger.getLogger(LogoServlet.class.getName());
 
     @Override
     public void doGet(final HttpServletRequest req, final HttpServletResponse resp)

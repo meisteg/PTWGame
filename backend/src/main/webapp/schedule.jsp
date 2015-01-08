@@ -4,8 +4,15 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.TimeZone" %>
 
+<%@ page import="com.google.appengine.api.blobstore.BlobstoreServiceFactory" %>
+<%@ page import="com.google.appengine.api.blobstore.BlobstoreService" %>
+
 <%@ page import="com.meiste.greg.ptwgame.entities.Race" %>
 <%@ page import="com.meiste.greg.ptwgame.entities.Track" %>
+
+<%
+    final BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+%>
 
 <html>
     <head>
@@ -41,7 +48,7 @@
             p {
                 margin: 0;
             }
-            #add_track_form, #add_race_form {
+            #add_track_form, #add_race_form, #upload_logo {
                  display: none;
                  background-color: #00695C;
                  padding: 5px 20px 0 20px;
@@ -65,6 +72,7 @@
         <h1>Pick The Winner Schedule</h1>
 <%
         final List<Track> tracks = Track.getAll();
+        final List<Race> races = Race.getList(0);
 %>
         <div id="main">
 <%
@@ -72,7 +80,6 @@
 %>
                 <h2>Scheduled Races</h2>
 <%
-                final List<Race> races = Race.getList(0);
                 if (races.size() > 0) {
 %>
                     <table>
@@ -92,7 +99,11 @@
                         for (final Race race : races) {
 %>
                             <tr>
-                                <td><img src="img/race/<%= race.raceId %>.png" width="108" height="90"></td>
+                                <td>
+                                    <a href="#" id="logo<%= race.raceId %>">
+                                        <img src="img/race/<%= race.raceId %>.png?<%= System.currentTimeMillis() %>" width="108" height="90">
+                                    </a>
+                                </td>
                                 <td><%= race.raceId %></td>
                                 <td><%= race.raceNum %></td>
                                 <td><%= race.name %></td>
@@ -217,6 +228,21 @@
             </form>
         </div>
 
+        <div id="upload_logo">
+            <h2>Upload Logo</h2>
+            <form id="logo_form" action="<%= blobstoreService.createUploadUrl("/schedule") %>" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="op" value="upload_logo">
+                <input id="logo_for_race" type="hidden" name="race_id" value="-1">
+
+                <input type="file" name="logo">
+
+                <div class="submit">
+                    <input type="button" value="Cancel" id="cancel_update_logo" />
+                    <input type="submit" value="Submit" />
+                </div>
+            </form>
+        </div>
+
         <script src="js/jquery-1.10.2.min.js" type="text/javascript"></script>
         <script type="text/javascript">
             $("#add_race").click(function() {
@@ -241,6 +267,22 @@
                 $("#main").show();
                 $("#add_track_form").hide();
             });
+            $("#cancel_update_logo").click(function() {
+                $("#logo_form")[0].reset();
+                $("#main").show();
+                $("#upload_logo").hide();
+            });
+<%
+            for (final Race race : races) {
+%>
+                $("#logo<%= race.raceId %>").click(function() {
+                    $("#main").hide();
+                    $("#upload_logo").show();
+                    $("#logo_for_race").val('<%= race.id %>');
+                });
+<%
+            }
+%>
         </script>
     </body>
 </html>

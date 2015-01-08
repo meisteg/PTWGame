@@ -16,6 +16,9 @@
 
 package com.meiste.greg.ptwgame.servlets;
 
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.meiste.greg.ptwgame.entities.Race;
@@ -29,6 +32,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.logging.Logger;
 
@@ -81,6 +86,9 @@ public class ScheduleServlet extends HttpServlet {
                 case "add_track":
                     addTrack(req);
                     break;
+                case "upload_logo":
+                    uploadLogo(req);
+                    break;
             }
             resp.sendRedirect("/schedule.jsp");
         } else {
@@ -123,5 +131,37 @@ public class ScheduleServlet extends HttpServlet {
         Track.put(track);
 
         log.info(track.longName + " added");
+    }
+
+    private void uploadLogo(final HttpServletRequest req) {
+        final BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+        final Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(req);
+        final List<BlobKey> blobKeys = blobs.get("logo");
+
+        String blobKey = null;
+        if (blobKeys == null || blobKeys.isEmpty()) {
+            log.warning("Blob missing");
+        } else {
+            blobKey = blobKeys.get(0).getKeyString();
+        }
+
+        final Race race = Race.get(Long.parseLong(req.getParameter("race_id")));
+        if (race == null) {
+            log.severe("Race not found!");
+
+            // Cleanup orphans
+            if (blobKey != null) {
+                blobstoreService.delete(new BlobKey(blobKey));
+            }
+            return;
+        }
+
+        if ((race.logoBlobKey != null) && !race.logoBlobKey.isEmpty()) {
+            log.warning("Removing existing logo");
+            blobstoreService.delete(new BlobKey(race.logoBlobKey));
+        }
+
+        race.logoBlobKey = blobKey;
+        Race.put(race);
     }
 }
