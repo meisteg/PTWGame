@@ -88,8 +88,11 @@ public class StandingsCalcServlet extends HttpServlet {
         int rank = 1;
         final List<Player> players = Player.getForRanking();
         for (final Player player : players) {
-            player.rank = rank++;
-            Player.put(player);
+            final int newRank = rank++;
+            if ((player.rank == null) || (newRank != player.rank)) {
+                player.rank = newRank;
+                Player.put(player);
+            }
         }
     }
 
