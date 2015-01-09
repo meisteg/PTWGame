@@ -26,7 +26,6 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Load;
 
-import java.util.Calendar;
 import java.util.List;
 
 import static com.meiste.greg.ptwgame.OfyService.ofy;
@@ -35,6 +34,7 @@ import static com.meiste.greg.ptwgame.OfyService.ofy;
 @Index
 @Cache
 public class RaceAnswers {
+    private static class LoadRace {}
     private static class LoadPlayer {}
 
     @SuppressWarnings("unused")
@@ -42,8 +42,9 @@ public class RaceAnswers {
     private Long id;
 
     public long timestamp = System.currentTimeMillis();
-    public int mYear = Calendar.getInstance().get(Calendar.YEAR);
-    public int mRaceId = -1;
+
+    @Load(LoadRace.class)
+    public Ref<Race> raceRef;
 
     @Load(LoadPlayer.class)
     public Ref<Player> playerRef;
@@ -70,23 +71,20 @@ public class RaceAnswers {
 
     public static RaceAnswers get(final Race race, final Player player) {
         return ofy().load().type(RaceAnswers.class)
-                .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))
-                .filter("mRaceId", race.raceId)
+                .filter("raceRef", race.getRef())
                 .filter("playerRef", player.getRef())
                 .first().now();
     }
 
     public static List<RaceAnswers> getAllForUser(final Player player) {
-        return ofy().load().type(RaceAnswers.class)
-                .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))
+        return ofy().load().group(LoadRace.class).type(RaceAnswers.class)
                 .filter("playerRef", player.getRef())
                 .list();
     }
 
     public static List<RaceAnswers> getAllForRace(final Race race) {
         return ofy().load().group(LoadPlayer.class).type(RaceAnswers.class)
-                .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))
-                .filter("mRaceId", race.raceId)
+                .filter("raceRef", race.getRef())
                 .list();
     }
 
@@ -94,9 +92,8 @@ public class RaceAnswers {
         ofy().save().entity(answers).now();
     }
 
-    @SuppressWarnings("unused")
-    public RaceAnswers() {
-        // Needed by objectify
+    private RaceAnswers() {
+        // Needed by objectify and gson
     }
 
     public void setPlayer(final Player player) {
@@ -108,7 +105,11 @@ public class RaceAnswers {
     }
 
     public void setRace(final Race race) {
-        mRaceId = race.raceId;
+        raceRef = race.getRef();
+    }
+
+    public Race getRace() {
+        return raceRef.get();
     }
 
     public static RaceAnswers fromJson(final String json) {

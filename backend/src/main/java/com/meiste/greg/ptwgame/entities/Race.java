@@ -128,6 +128,10 @@ public final class Race {
         return raceNum <= 0;
     }
 
+    public Ref<Race> getRef() {
+        return Ref.create(this);
+    }
+
     public static Race getNext(final boolean allowExhibition, final boolean allowInProgress) {
         // Only one inequality filter per query is supported on the datastore. :(
         // Because of this, looping through the results to find match is required.
