@@ -28,4 +28,9 @@
         <property name="mRaceId" direction="asc"/>
     </datastore-index>
 
+    <datastore-index kind="Race" ancestor="false" source="manual">
+        <property name="raceId" direction="asc"/>
+        <property name="startTime" direction="asc"/>
+    </datastore-index>
+
 </datastore-indexes>
