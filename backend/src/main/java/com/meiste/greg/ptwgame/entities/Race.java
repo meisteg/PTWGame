@@ -96,24 +96,27 @@ public final class Race {
     @SerializedName("mCityState")
     public String trackCityState;
 
-    @SuppressWarnings("unused")
-    private Race() {
-        // Needed by objectify and gson
-    }
-
-    public Race(final Track track) {
-        trackRef = Ref.create(track);
+    public Race() {
+        // Do nothing
     }
 
     @SuppressWarnings("unused")
     @OnLoad
     private void onLoad() {
-        final Track track = trackRef.get();
+        final Track track = getTrack();
         trackNameLong = track.longName;
         trackNameShort = track.shortName;
         trackLength = track.length;
         trackLayout = track.layout;
         trackCityState = track.city + ", " + track.state;
+    }
+
+    public void setTrack(final Track track) {
+        trackRef = Ref.create(track);
+    }
+
+    public Track getTrack() {
+        return trackRef.get();
     }
 
     public boolean isFuture() {

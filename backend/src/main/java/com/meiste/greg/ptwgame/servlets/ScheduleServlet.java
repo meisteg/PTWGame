@@ -64,6 +64,9 @@ public class ScheduleServlet extends HttpServlet {
                 case "add_race":
                     addRace(req);
                     break;
+                case "edit_race":
+                    editRace(req);
+                    break;
                 case "add_track":
                     addTrack(req);
                     break;
@@ -78,16 +81,36 @@ public class ScheduleServlet extends HttpServlet {
     }
 
     private void addRace(final HttpServletRequest req) {
-        final Track track = Track.get(Long.parseLong(req.getParameter("track")));
-        if (track == null) {
-            log.severe("Failed to add race: Track not found!");
+        final Race race = new Race();
+        if (postRace(req, race)) {
+            log.info("Added: " + race.name);
+        }
+    }
+
+    private void editRace(final HttpServletRequest req) {
+        final Race race = Race.get(Long.parseLong(req.getParameter("entityId")));
+        if (race == null) {
+            log.severe("Failed to edit race: Race not found!");
             return;
         }
 
+        if (postRace(req, race)) {
+            log.info("Edited: " + race.name);
+        }
+    }
+
+    private boolean postRace(final HttpServletRequest req, final Race race) {
+        final String errMsg = "Failed to " + (race.id != null ? "edit" : "add") + " race: ";
         final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
         sdf.setTimeZone(TimeZone.getTimeZone("America/New_York"));
 
-        final Race race = new Race(track);
+        final Track track = Track.get(Long.parseLong(req.getParameter("track")));
+        if (track == null) {
+            log.severe(errMsg + "Track not found!");
+            return false;
+        }
+
+        race.setTrack(track);
         race.raceId = Integer.parseInt(req.getParameter("raceId"));
         race.raceNum = Integer.parseInt(req.getParameter("raceNum"));
         race.name = req.getParameter("name");
@@ -97,8 +120,11 @@ public class ScheduleServlet extends HttpServlet {
             race.questionTime = sdf.parse(req.getParameter("questionTime")).getTime();
             Race.put(race);
         } catch (final ParseException e) {
-            log.severe("Failed to add race: " + e);
+            log.severe(errMsg + e);
+            return false;
         }
+
+        return true;
     }
 
     private void addTrack(final HttpServletRequest req) {

@@ -48,7 +48,7 @@
             p {
                 margin: 0;
             }
-            #add_track_form, #add_race_form, #upload_logo {
+            #add_track_form, #add_race_form, #edit_race_form, #upload_logo {
                  display: none;
                  background-color: #00695C;
                  padding: 5px 20px 0 20px;
@@ -56,7 +56,7 @@
                  margin-right: auto;
                  width: 20%;
             }
-            #add_race_form {
+            #add_race_form, #edit_race_form {
                  width: 40%;
             }
             input, select {
@@ -100,13 +100,15 @@
 %>
                             <tr>
                                 <td>
-                                    <a href="#" id="logo<%= race.raceId %>">
+                                    <a href="#" id="logo<%= race.id %>">
                                         <img src="img/race/<%= race.raceId %>.png?<%= System.currentTimeMillis() %>" width="108" height="90">
                                     </a>
                                 </td>
                                 <td><%= race.raceId %></td>
                                 <td><%= race.raceNum %></td>
-                                <td><%= race.name %></td>
+                                <td>
+                                    <a href="#" id="edit_race<%= race.id %>"><%= race.name %></a>
+                                </td>
                                 <td><%= race.trackNameLong %></td>
                                 <td><%= race.tv %></td>
                                 <td><%= sdf.format(new Date(race.questionTime)) %></td>
@@ -198,6 +200,48 @@
             </form>
         </div>
 
+        <div id="edit_race_form">
+            <h2>Edit Race</h2>
+            <form id="edit_race" action="/schedule" method="post">
+                <input type="hidden" name="op" value="edit_race">
+                <input id="editEntityId" type="hidden" name="entityId" value="-1">
+
+                <p>Race ID</p>
+                <input name="raceId" id="editRaceId" type="text" size="2" maxlength="2" required="required" />
+
+                <p>Number (0 if exhibition)</p>
+                <input name="raceNum" id="editRaceNum" type="text" size="2" maxlength="2" required="required" />
+
+                <p>Name</p>
+                <input name="name" id="editRaceName" type="text" size="70" required="required" />
+
+                <p>Track</p>
+                <select name="track" id="editTrack">
+<%
+                    for (final Track track : tracks) {
+%>
+                        <option value="<%= track.id %>"><%= track.longName %></option>
+<%
+                    }
+%>
+                </select>
+
+                <p>TV</p>
+                <input name="tv" id="editTv" type="text" size="15" required="required" />
+
+                <p>Question Time (Eastern)</p>
+                <input name="questionTime" id="editQuestionTime" type="datetime-local" required="required" />
+
+                <p>Start Time (Eastern)</p>
+                <input name="startTime" id="editStartTime" type="datetime-local" required="required" />
+
+                <div class="submit">
+                    <input type="button" value="Cancel" id="cancel_edit_race" />
+                    <input type="submit" value="Submit" />
+                </div>
+            </form>
+        </div>
+
         <div id="add_track_form">
             <h2>Add Track</h2>
             <form id="track_form" action="/schedule" method="post">
@@ -262,6 +306,11 @@
                 $("#main").show();
                 $("#add_race_form").hide();
             });
+            $("#cancel_edit_race").click(function() {
+                $("#edit_race")[0].reset();
+                $("#main").show();
+                $("#edit_race_form").hide();
+            });
             $("#cancel_add_track").click(function() {
                 $("#track_form")[0].reset();
                 $("#main").show();
@@ -273,12 +322,26 @@
                 $("#upload_logo").hide();
             });
 <%
+            final SimpleDateFormat edit_sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+            edit_sdf.setTimeZone(TimeZone.getTimeZone("America/New_York"));
             for (final Race race : races) {
 %>
-                $("#logo<%= race.raceId %>").click(function() {
+                $("#logo<%= race.id %>").click(function() {
                     $("#main").hide();
                     $("#upload_logo").show();
                     $("#logo_for_race").val('<%= race.id %>');
+                });
+                $("#edit_race<%= race.id %>").click(function() {
+                    $("#main").hide();
+                    $("#edit_race_form").show();
+                    $("#editEntityId").val('<%= race.id %>');
+                    $("#editRaceId").val('<%= race.raceId %>');
+                    $("#editRaceNum").val('<%= race.raceNum %>');
+                    $("#editRaceName").val("<%= race.name %>");
+                    $("#editTrack").val('<%= race.getTrack().id %>');
+                    $("#editTv").val('<%= race.tv %>');
+                    $("#editQuestionTime").val('<%= edit_sdf.format(new Date(race.questionTime)) %>');
+                    $("#editStartTime").val('<%= edit_sdf.format(new Date(race.startTime)) %>');
                 });
 <%
             }
