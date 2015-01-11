@@ -21,15 +21,12 @@ import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.meiste.greg.ptwgame.entities.Race;
 import com.meiste.greg.ptwgame.entities.Track;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -44,34 +41,18 @@ import javax.servlet.http.HttpServletResponse;
 public class ScheduleServlet extends HttpServlet {
 
     private static final Logger log = Logger.getLogger(ScheduleServlet.class.getName());
-    private static final Object sRacesSync = new Object();
-    private static String sRaces;
+    private static final int NUM_RACES_IN_SEASON = 41;
 
     @Override
     public void doGet(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
-        synchronized (sRacesSync) {
-            if (sRaces == null) {
-                log.info("Reading schedule file");
-
-                try {
-                    final InputStream is = new FileInputStream(new File("schedule_2014"));
-                    final BufferedReader in = new BufferedReader(new InputStreamReader(is));
-                    String line;
-                    final StringBuilder buffer = new StringBuilder();
-                    while ((line = in.readLine()) != null) {
-                        buffer.append(line).append('\n');
-                    }
-                    in.close();
-                    sRaces = buffer.toString();
-                } catch (final IOException e) {
-                    log.warning("Unable to open schedule: " + e);
-                }
-            }
-        }
+        // Limit is here so an admin could start entering races for the next season without
+        // them showing up on player devices.
+        final List<Race> races = Race.getList(NUM_RACES_IN_SEASON);
+        final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 
         resp.setContentType("text/plain");
-        resp.getWriter().print(sRaces);
+        resp.getWriter().print(gson.toJson(races));
     }
 
     @Override
