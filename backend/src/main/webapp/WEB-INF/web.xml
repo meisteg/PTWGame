@@ -78,6 +78,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
         <servlet-name>Logo</servlet-name>
         <servlet-class>com.meiste.greg.ptwgame.servlets.LogoServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>Reset</servlet-name>
+        <servlet-class>com.meiste.greg.ptwgame.servlets.ResetServlet</servlet-class>
+    </servlet>
 
     <servlet-mapping>
         <servlet-name>Questions</servlet-name>
@@ -138,6 +142,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
     <servlet-mapping>
         <servlet-name>Logo</servlet-name>
         <url-pattern>/img/race/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Reset</servlet-name>
+        <url-pattern>/tasks/reset</url-pattern>
     </servlet-mapping>
 
     <welcome-file-list>

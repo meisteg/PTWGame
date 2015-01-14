@@ -7,12 +7,6 @@
     </datastore-index>
 
     <datastore-index kind="Player" ancestor="false">
-        <property name="mYear" direction="asc"/>
-        <property name="rank" direction="asc"/>
-    </datastore-index>
-
-    <datastore-index kind="Player" ancestor="false">
-        <property name="mYear" direction="asc"/>
         <property name="points" direction="desc"/>
         <property name="wins" direction="desc"/>
         <property name="races" direction="desc"/>

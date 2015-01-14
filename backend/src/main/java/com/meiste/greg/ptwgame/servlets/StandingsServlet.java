@@ -157,17 +157,6 @@ public class StandingsServlet extends HttpServlet {
             if (self == null) {
                 log.info("User " + user + " not found in standings. Creating player...");
                 self = new Player(user);
-
-                // Try to be nice and retrieve player name from last year
-                final Player oldSelf = Player.getLastYear(user.getUserId());
-                if ((oldSelf != null) && (oldSelf.name != null)) {
-                    // Verify name not already taken by someone else this year
-                    final Player other = Player.getByName(oldSelf.name);
-                    if (other == null) {
-                        self.name = oldSelf.name;
-                    }
-                }
-
                 Player.put(self);
             }
 

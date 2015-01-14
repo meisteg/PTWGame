@@ -74,8 +74,6 @@ public class RaceQuestions {
                 .first().now();
     }
 
-    // Used by admin.jsp
-    @SuppressWarnings("unused")
     public static List<RaceQuestions> getAll() {
         return ofy().load().type(RaceQuestions.class)
                 .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))

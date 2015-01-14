@@ -25,7 +25,6 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
 
-import java.util.Calendar;
 import java.util.List;
 
 import static com.meiste.greg.ptwgame.OfyService.ofy;
@@ -38,7 +37,6 @@ public class Player {
     @Id
     private Long id;
 
-    public int mYear = Calendar.getInstance().get(Calendar.YEAR);
     public String mUserId;
     public String userEmail;
 
@@ -77,14 +75,8 @@ public class Player {
         return getByProperty("name", name);
     }
 
-    public static Player getLastYear(final String userId) {
-        return getByPropertyAndYear("mUserId", userId,
-                Calendar.getInstance().get(Calendar.YEAR) - 1);
-    }
-
     public static List<Player> getList(final int limit) {
         return ofy().load().type(Player.class)
-                .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))
                 .filter("rank !=", null)
                 .order("rank")
                 .limit(limit)
@@ -93,19 +85,12 @@ public class Player {
 
     public static List<Player> getForRanking() {
         return ofy().load().type(Player.class)
-                .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))
                 .order("-points").order("-wins").order("-races")
                 .list();
     }
 
     private static Player getByProperty(final String propName, final Object propValue) {
-        return getByPropertyAndYear(propName, propValue, Calendar.getInstance().get(Calendar.YEAR));
-    }
-
-    private static Player getByPropertyAndYear(final String propName, final Object propValue,
-                                               final int year) {
         return ofy().load().type(Player.class)
-                .filter("mYear", year)
                 .filter(propName, propValue)
                 .first().now();
     }
@@ -131,5 +116,11 @@ public class Player {
 
     public Ref<Player> getRef() {
         return Ref.create(this);
+    }
+
+    public void reset() {
+        rank = null;
+        points = races = wins = 0;
+        Player.put(this);
     }
 }
