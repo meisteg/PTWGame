@@ -18,7 +18,9 @@ package com.meiste.greg.ptwgame.entities;
 
 import com.google.appengine.api.users.User;
 import com.google.gson.annotations.Expose;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Result;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -95,8 +97,11 @@ public class Player {
                 .first().now();
     }
 
-    public static void put(final Player player) {
-        ofy().save().entity(player).now();
+    public static void put(final Player player, final boolean now) {
+        final Result<Key<Player>> result = ofy().save().entity(player);
+        if (now) {
+            result.now();
+        }
     }
 
     public Player() {
@@ -121,6 +126,6 @@ public class Player {
     public void reset() {
         rank = null;
         points = races = wins = 0;
-        Player.put(this);
+        Player.put(this, false);
     }
 }

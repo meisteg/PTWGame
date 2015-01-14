@@ -81,7 +81,7 @@ public class StandingsCalcServlet extends HttpServlet {
                 player.points += 5;
 
             player.races++;
-            Player.put(player);
+            Player.put(player, true);
         }
 
         // TODO: Need to also add "submitted questions first" tie breaker
@@ -91,7 +91,7 @@ public class StandingsCalcServlet extends HttpServlet {
             final int newRank = rank++;
             if ((player.rank == null) || (newRank != player.rank)) {
                 player.rank = newRank;
-                Player.put(player);
+                Player.put(player, false);
             }
         }
     }
@@ -106,7 +106,7 @@ public class StandingsCalcServlet extends HttpServlet {
         // Reset points
         for (final Player p : chasePlayers) {
             p.points = StandingsCommon.CHASE_POINTS_BASE + (p.wins * 10);
-            Player.put(p);
+            Player.put(p, true);
         }
 
         // Done! No need to reset rank since regular scoring will handle it
@@ -119,7 +119,7 @@ public class StandingsCalcServlet extends HttpServlet {
                 Player.getList(StandingsCommon.NUM_PLAYERS_IN_ROUND_2);
         for (final Player p : standings) {
             p.points += StandingsCommon.CHASE_POINTS_PER_ROUND;
-            Player.put(p);
+            Player.put(p, true);
         }
 
         // Done! No need to subtract points from the other Chase players.
@@ -137,7 +137,7 @@ public class StandingsCalcServlet extends HttpServlet {
             final int index = standings.size() - 1;
             final Player p = standings.get(index);
             p.points -= StandingsCommon.CHASE_POINTS_PER_ROUND;
-            Player.put(p);
+            Player.put(p, true);
             standings.remove(index);
         }
 
@@ -145,7 +145,7 @@ public class StandingsCalcServlet extends HttpServlet {
         // really make much sense.
         for (final Player p : standings) {
             p.points += StandingsCommon.CHASE_POINTS_PER_ROUND;
-            Player.put(p);
+            Player.put(p, true);
         }
     }
 
@@ -161,7 +161,7 @@ public class StandingsCalcServlet extends HttpServlet {
             final int index = standings.size() - 1;
             final Player p = standings.get(index);
             p.points -= (2 * StandingsCommon.CHASE_POINTS_PER_ROUND);
-            Player.put(p);
+            Player.put(p, true);
             standings.remove(index);
         }
 
@@ -169,7 +169,7 @@ public class StandingsCalcServlet extends HttpServlet {
         // really make much sense.
         for (final Player p : standings) {
             p.points += StandingsCommon.CHASE_POINTS_PER_ROUND;
-            Player.put(p);
+            Player.put(p, true);
         }
     }
 }

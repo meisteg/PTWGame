@@ -97,7 +97,7 @@ public class StandingsServlet extends HttpServlet {
                 }
 
                 self.name = newName;
-                Player.put(self);
+                Player.put(self, true);
                 log.info(user.getEmail() + " changed player name to " + newName);
                 sendGcm(self);
 
@@ -157,7 +157,7 @@ public class StandingsServlet extends HttpServlet {
             if (self == null) {
                 log.info("User " + user + " not found in standings. Creating player...");
                 self = new Player(user);
-                Player.put(self);
+                Player.put(self, true);
             }
 
             int numToShow;
