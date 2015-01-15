@@ -140,7 +140,7 @@ public class AdminServlet extends HttpServlet {
 
         // Kick off task to calculate new standings
         final Queue queue = QueueFactory.getDefaultQueue();
-        queue.add(withUrl("/tasks/standings").param(StandingsCalcServlet.PARAM_RACE, raceEntityId));
+        queue.add(withUrl("/tasks/scoring").param(ScoringServlet.PARAM_RACE, raceEntityId));
     }
 
     private void submitDriver(final HttpServletRequest req) {

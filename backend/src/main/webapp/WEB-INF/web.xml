@@ -43,8 +43,12 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
         <servlet-class>com.meiste.greg.ptwgame.servlets.AdminServlet</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>StandingsCalc</servlet-name>
-        <servlet-class>com.meiste.greg.ptwgame.servlets.StandingsCalcServlet</servlet-class>
+        <servlet-name>Scoring</servlet-name>
+        <servlet-class>com.meiste.greg.ptwgame.servlets.ScoringServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>Ranking</servlet-name>
+        <servlet-class>com.meiste.greg.ptwgame.servlets.RankingServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>RegisterServlet</servlet-name>
@@ -108,8 +112,12 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
         <url-pattern>/admin</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>StandingsCalc</servlet-name>
-        <url-pattern>/tasks/standings</url-pattern>
+        <servlet-name>Scoring</servlet-name>
+        <url-pattern>/tasks/scoring</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Ranking</servlet-name>
+        <url-pattern>/tasks/ranking</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>RegisterServlet</servlet-name>

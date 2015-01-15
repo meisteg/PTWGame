@@ -16,6 +16,8 @@
 
 package com.meiste.greg.ptwgame.servlets;
 
+import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.TaskOptions;
 import com.meiste.greg.ptwgame.StandingsCommon;
 import com.meiste.greg.ptwgame.entities.Player;
 import com.meiste.greg.ptwgame.entities.Race;
@@ -30,8 +32,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class StandingsCalcServlet extends HttpServlet {
-    private static final Logger log = Logger.getLogger(StandingsCalcServlet.class.getName());
+public class ScoringServlet extends HttpServlet {
+    private static final Logger log = Logger.getLogger(ScoringServlet.class.getName());
 
     public static final String PARAM_RACE = "race_id";
 
@@ -39,7 +41,7 @@ public class StandingsCalcServlet extends HttpServlet {
     public void doPost(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
         final Race race = Race.get(Long.parseLong(req.getParameter(PARAM_RACE)));
-        log.info("Updating standings for " + race.name);
+        log.info("Scoring the " + race.name);
 
         final RaceCorrectAnswers answers = RaceCorrectAnswers.get(race);
         if (answers == null) {
@@ -84,16 +86,15 @@ public class StandingsCalcServlet extends HttpServlet {
             Player.put(player, true);
         }
 
-        // TODO: Need to also add "submitted questions first" tie breaker
-        int rank = 1;
-        final List<Player> players = Player.getForRanking();
-        for (final Player player : players) {
-            final int newRank = rank++;
-            if ((player.rank == null) || (newRank != player.rank)) {
-                player.rank = newRank;
-                Player.put(player, false);
-            }
-        }
+        // Queries across multiple entity groups (non-ancestor queries) can only guarantee
+        // eventually consistent results. However, the limit to writing to the same entity group
+        // is 1 write per second, which is not acceptable. So to ensure the ranking query uses the
+        // newly calculated player scores, delay the ranking by a few seconds to improve odds of
+        // getting strong consistency.
+        final TaskOptions taskOptions = TaskOptions.Builder
+                .withUrl("/tasks/ranking")
+                .countdownMillis(3000);
+        QueueFactory.getDefaultQueue().add(taskOptions);
     }
 
     private void startChase() {
