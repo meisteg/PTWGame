@@ -16,16 +16,17 @@
 
 package com.meiste.greg.ptwgame.entities;
 
-import java.util.Calendar;
 import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Load;
 import com.meiste.greg.ptwgame.Driver;
 
 import static com.meiste.greg.ptwgame.OfyService.ofy;
@@ -33,15 +34,15 @@ import static com.meiste.greg.ptwgame.OfyService.ofy;
 @Entity
 @Cache
 public class RaceQuestions {
+    private static class LoadRace {}
+
     @SuppressWarnings("unused")
     @Id
     private Long id;
 
     @Index
-    public int mYear = Calendar.getInstance().get(Calendar.YEAR);
-
-    @Index
-    public int mRaceId = -1;
+    @Load(LoadRace.class)
+    public Ref<Race> raceRef;
 
     /*
      * Drivers field left null by default intentionally. If an admin fails to
@@ -64,21 +65,13 @@ public class RaceQuestions {
     public String[] a3 = {"Yes", "No"};
 
     public static RaceQuestions get(final Race race) {
-        return get(race.raceId);
-    }
-
-    public static RaceQuestions get(final int raceId) {
         return ofy().load().type(RaceQuestions.class)
-                .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))
-                .filter("mRaceId", raceId)
+                .filter("raceRef", race.getRef())
                 .first().now();
     }
 
     public static List<RaceQuestions> getAll() {
-        return ofy().load().type(RaceQuestions.class)
-                .filter("mYear", Calendar.getInstance().get(Calendar.YEAR))
-                .order("mRaceId")
-                .list();
+        return ofy().load().group(LoadRace.class).type(RaceQuestions.class).list();
     }
 
     public static void put(final RaceQuestions rq) {
@@ -91,7 +84,7 @@ public class RaceQuestions {
     }
 
     public RaceQuestions(final Race race) {
-        mRaceId = race.raceId;
+        raceRef = race.getRef();
     }
 
     public void setQ2(final String q) {
@@ -108,6 +101,10 @@ public class RaceQuestions {
 
     public void setA3(final String[] a) {
         a3 = a;
+    }
+
+    public Race getRace() {
+        return raceRef.get();
     }
 
     public String toJson() {

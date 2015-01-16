@@ -27,14 +27,14 @@
     RaceQuestions questions = null;
     if (qAll != null) {
         for (final RaceQuestions temp : qAll) {
-            if (RaceCorrectAnswers.get(temp.mRaceId) == null) {
+            if (RaceCorrectAnswers.get(temp.getRace()) == null) {
                 questions = temp;
                 break;
             }
         }
     }
     if (questions != null) {
-        final Race race = Race.get(questions.mRaceId);
+        final Race race = questions.getRace();
 %>
         <h2>Submit Answers for <%= race.trackNameLong %></h2>
 <%
