@@ -4,8 +4,7 @@
 <%@ page import="com.google.appengine.api.users.UserService" %>
 <%@ page import="com.google.appengine.api.users.UserServiceFactory" %>
 
-<%@ page import="com.meiste.greg.ptwgame.Driver" %>
-<%@ page import="com.meiste.greg.ptwgame.DriverDatastore" %>
+<%@ page import="com.meiste.greg.ptwgame.entities.Driver" %>
 <%@ page import="com.meiste.greg.ptwgame.entities.Race" %>
 <%@ page import="com.meiste.greg.ptwgame.entities.RaceCorrectAnswers" %>
 <%@ page import="com.meiste.greg.ptwgame.entities.RaceQuestions" %>
@@ -52,7 +51,7 @@
 <%
                 for (final Driver driver : questions.drivers) {
 %>
-                    <option value="<%= driver.mNumber %>"><%= driver.getName() %></option>
+                    <option value="<%= driver.number %>"><%= driver.getName() %></option>
 <%
                 }
 %>
@@ -82,7 +81,7 @@
 <%
                 for (final Driver driver : questions.drivers) {
 %>
-                    <option value="<%= driver.mNumber %>"><%= driver.getName() %></option>
+                    <option value="<%= driver.number %>"><%= driver.getName() %></option>
 <%
                 }
 %>
@@ -111,7 +110,7 @@
                 
                 <div style="margin-left:3px"><select multiple="multiple" id="drivers" name="drivers">
 <%
-                final List<Driver> drivers = DriverDatastore.getAll();
+                final List<Driver> drivers = Driver.getAll();
                 RaceQuestions prq = null;
                 final Race prevRace = Race.getPrev(race);
                 if (prevRace != null) {
@@ -123,7 +122,7 @@
                         selected = true;
                     }
 %>
-                    <option value="<%= d.mNumber %>"<% if (selected) { %> selected <% } %> >
+                    <option value="<%= d.id %>"<% if (selected) { %> selected <% } %> >
                         <%= d.getName() %>
                     </option>
 <%

@@ -52,6 +52,7 @@ public class QuestionsServlet extends HttpServlet {
                 if (q == null) {
                     log.warning("No questions found for race! Using default questions.");
                     q = new RaceQuestions(race);
+                    q.setDefaults();
                     RaceQuestions.put(q);
                 }
 

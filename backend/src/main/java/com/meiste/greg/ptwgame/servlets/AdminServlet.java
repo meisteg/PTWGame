@@ -30,8 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.utils.SystemProperty;
-import com.meiste.greg.ptwgame.Driver;
-import com.meiste.greg.ptwgame.DriverDatastore;
+import com.meiste.greg.ptwgame.entities.Driver;
 import com.meiste.greg.ptwgame.entities.Race;
 import com.meiste.greg.ptwgame.entities.RaceCorrectAnswers;
 import com.meiste.greg.ptwgame.entities.RaceQuestions;
@@ -94,17 +93,17 @@ public class AdminServlet extends HttpServlet {
                 }
                 q.setA3(a3.toArray(new String[a3.size()]));
 
-                final String[] driver_nums = req.getParameterValues("drivers");
-                if (driver_nums == null) {
+                final String[] driver_ids = req.getParameterValues("drivers");
+                if (driver_ids == null) {
                     log.warning("No drivers submitted. Questions not set.");
-                } else if (driver_nums.length < MIN_NUM_DRIVERS) {
+                } else if (driver_ids.length < MIN_NUM_DRIVERS) {
                     log.warning("Need at least " + MIN_NUM_DRIVERS + " drivers. Only submitted "
-                            + driver_nums.length + " drivers. Questions not set.");
+                            + driver_ids.length + " drivers. Questions not set.");
                 } else {
-                    q.drivers = new ArrayList<>();
-                    for (final String driver_num : driver_nums) {
-                        final int num = Integer.parseInt(driver_num);
-                        q.drivers.add(DriverDatastore.findDriverByNumber(num));
+                    q.driverRefs = new ArrayList<>();
+                    for (final String driver_id : driver_ids) {
+                        final long id = Long.parseLong(driver_id);
+                        q.driverRefs.add(Driver.getRef(id));
                     }
                     RaceQuestions.put(q);
                 }
@@ -145,9 +144,11 @@ public class AdminServlet extends HttpServlet {
 
     private void submitDriver(final HttpServletRequest req) {
         final Driver driver = new Driver();
-        driver.mFirstName = req.getParameter("driver_fname");
-        driver.mLastName = req.getParameter("driver_lname");
-        driver.mNumber = Integer.parseInt(req.getParameter("driver_num"));
-        DriverDatastore.add(driver);
+        driver.firstName = req.getParameter("driver_fname");
+        driver.lastName = req.getParameter("driver_lname");
+        driver.number = Integer.parseInt(req.getParameter("driver_num"));
+        if (!Driver.put(driver)) {
+            log.severe("Failed to add new driver");
+        }
     }
 }

@@ -25,9 +25,12 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Load;
-import com.meiste.greg.ptwgame.Driver;
+import com.googlecode.objectify.annotation.OnLoad;
+import com.googlecode.objectify.annotation.OnSave;
+import com.meiste.greg.ptwgame.RefUtils;
 
 import static com.meiste.greg.ptwgame.OfyService.ofy;
 
@@ -44,25 +47,24 @@ public class RaceQuestions {
     @Load(LoadRace.class)
     public Ref<Race> raceRef;
 
-    /*
-     * Drivers field left null by default intentionally. If an admin fails to
-     * set the questions, drivers array should be null so PTW app falls back to
-     * old hard-coded drivers behavior.
-     */
+    @Load
+    public List<Ref<Driver>> driverRefs;
+
+    @Ignore
     @Expose
     public List<Driver> drivers;
 
     @Expose
-    public String q2 = "Which manufacturer will have more cars finish in the top 10?";
+    public String q2;
 
     @Expose
-    public String[] a2 = {"Chevrolet", "Ford", "Toyota"};
+    public String[] a2;
 
     @Expose
-    public String q3 = "Will there be a new points leader after the race?";
+    public String q3;
 
     @Expose
-    public String[] a3 = {"Yes", "No"};
+    public String[] a3;
 
     public static RaceQuestions get(final Race race) {
         return ofy().load().type(RaceQuestions.class)
@@ -87,6 +89,20 @@ public class RaceQuestions {
         raceRef = race.getRef();
     }
 
+    @SuppressWarnings("unused")
+    @OnLoad
+    private void setDrivers() {
+        drivers = RefUtils.deref(driverRefs);
+    }
+
+    @SuppressWarnings("unused")
+    @OnSave
+    private void setDriverRefs() {
+        if ((driverRefs == null) && (drivers != null)) {
+            driverRefs = RefUtils.ref(drivers);
+        }
+    }
+
     public void setQ2(final String q) {
         q2 = fixUp(q);
     }
@@ -105,6 +121,14 @@ public class RaceQuestions {
 
     public Race getRace() {
         return raceRef.get();
+    }
+
+    public void setDefaults() {
+        drivers = Driver.getAll();
+        q2 = "Which manufacturer will have more cars finish in the top 10?";
+        a2 = new String[] {"Chevrolet", "Ford", "Toyota"};
+        q3 = "Will there be a new points leader after the race?";
+        a3 = new String[] {"Yes", "No"};
     }
 
     public String toJson() {

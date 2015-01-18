@@ -17,6 +17,7 @@ package com.meiste.greg.ptwgame;
 
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyService;
+import com.meiste.greg.ptwgame.entities.Driver;
 import com.meiste.greg.ptwgame.entities.FriendLink;
 import com.meiste.greg.ptwgame.entities.Player;
 import com.meiste.greg.ptwgame.entities.Race;
@@ -33,6 +34,7 @@ import com.meiste.greg.ptwgame.entities.Track;
 public class OfyService {
 
     static {
+        ObjectifyService.register(Driver.class);
         ObjectifyService.register(FriendLink.class);
         ObjectifyService.register(Player.class);
         ObjectifyService.register(Race.class);
