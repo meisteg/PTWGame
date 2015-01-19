@@ -1,6 +1,6 @@
 /*
  * Copyright 2012 Google Inc.
- * Copyright (C) 2013-2014 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2013-2015 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -169,26 +169,6 @@ public final class GCMDatastore {
             }
         }
         return devices;
-    }
-
-    /**
-     * Gets the number of total devices.
-     */
-    public static int getTotalDevices() {
-        final Transaction txn = datastore.beginTransaction();
-        try {
-            final Query query = new Query(DEVICE_TYPE).setKeysOnly();
-            final List<Entity> allKeys =
-                    datastore.prepare(query).asList(DEFAULT_FETCH_OPTIONS);
-            final int total = allKeys.size();
-            logger.fine("Total number of devices: " + total);
-            txn.commit();
-            return total;
-        } finally {
-            if (txn.isActive()) {
-                txn.rollback();
-            }
-        }
     }
 
     public static Entity findDeviceByRegId(final String regId) {

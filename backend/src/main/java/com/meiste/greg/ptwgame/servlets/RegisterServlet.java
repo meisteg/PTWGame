@@ -1,6 +1,6 @@
 /*
  * Copyright 2012 Google Inc.
- * Copyright (C) 2013, 2014 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2013-2015 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -28,11 +28,6 @@ import com.meiste.greg.ptwgame.GCMDatastore;
 /**
  * Servlet that registers a device, whose registration id is identified by
  * {@link #PARAMETER_REG_ID}.
- *
- * <p>
- * The client app should call this servlet everytime it receives a
- * {@code com.google.android.c2dm.intent.REGISTRATION C2DM} intent without an
- * error or {@code unregistered} extra.
  */
 public class RegisterServlet extends GCMBaseServlet {
 

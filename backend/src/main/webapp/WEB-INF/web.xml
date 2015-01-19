@@ -55,10 +55,6 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
         <servlet-class>com.meiste.greg.ptwgame.servlets.RegisterServlet</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>UnregisterServlet</servlet-name>
-        <servlet-class>com.meiste.greg.ptwgame.servlets.UnregisterServlet</servlet-class>
-    </servlet>
-    <servlet>
         <servlet-name>PushServlet</servlet-name>
         <servlet-class>com.meiste.greg.ptwgame.servlets.PushServlet</servlet-class>
     </servlet>
@@ -122,10 +118,6 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
     <servlet-mapping>
         <servlet-name>RegisterServlet</servlet-name>
         <url-pattern>/register</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>UnregisterServlet</servlet-name>
-        <url-pattern>/unregister</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>PushServlet</servlet-name>
