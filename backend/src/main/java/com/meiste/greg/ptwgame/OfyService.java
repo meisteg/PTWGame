@@ -20,6 +20,7 @@ import com.googlecode.objectify.ObjectifyService;
 import com.meiste.greg.ptwgame.entities.Device;
 import com.meiste.greg.ptwgame.entities.Driver;
 import com.meiste.greg.ptwgame.entities.FriendLink;
+import com.meiste.greg.ptwgame.entities.Multicast;
 import com.meiste.greg.ptwgame.entities.Player;
 import com.meiste.greg.ptwgame.entities.Race;
 import com.meiste.greg.ptwgame.entities.RaceAnswers;
@@ -38,6 +39,7 @@ public class OfyService {
         ObjectifyService.register(Device.class);
         ObjectifyService.register(Driver.class);
         ObjectifyService.register(FriendLink.class);
+        ObjectifyService.register(Multicast.class);
         ObjectifyService.register(Player.class);
         ObjectifyService.register(Race.class);
         ObjectifyService.register(RaceAnswers.class);

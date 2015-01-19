@@ -30,8 +30,8 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
-import com.meiste.greg.ptwgame.GCMDatastore;
 import com.meiste.greg.ptwgame.entities.Device;
+import com.meiste.greg.ptwgame.entities.Multicast;
 import com.meiste.greg.ptwgame.entities.Player;
 import com.meiste.greg.ptwgame.entities.Race;
 import com.meiste.greg.ptwgame.entities.RaceAnswers;
@@ -104,7 +104,7 @@ public class QuestionsServlet extends HttpServlet {
         if (deviceList.size() > 1) {
             log.info("Sending history GCM to " + deviceList.size() + " devices");
 
-            final String multicastKey = GCMDatastore.createMulticast(deviceList);
+            final String multicastKey = Multicast.create(deviceList);
             final TaskOptions taskOptions = TaskOptions.Builder
                     .withUrl("/tasks/send")
                     .param(SendMessageServlet.PARAMETER_MULTICAST, multicastKey)

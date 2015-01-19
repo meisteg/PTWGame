@@ -28,8 +28,8 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
-import com.meiste.greg.ptwgame.GCMDatastore;
 import com.meiste.greg.ptwgame.entities.Device;
+import com.meiste.greg.ptwgame.entities.Multicast;
 
 /**
  * Servlet that adds a new message to all registered devices.
@@ -39,6 +39,8 @@ import com.meiste.greg.ptwgame.entities.Device;
 public class PushServlet extends GCMBaseServlet {
 
     public static final String PARAMETER_MSG_TYPE = "msgType";
+
+    private static final int MULTICAST_SIZE = 1000;
 
     @Override
     protected void doGet(final HttpServletRequest req, final HttpServletResponse resp)
@@ -53,7 +55,7 @@ public class PushServlet extends GCMBaseServlet {
         } else {
             final Queue queue = QueueFactory.getDefaultQueue();
 
-            // must split in chunks of 1000 devices (GCM limit)
+            // must split in chunks of MULTICAST_SIZE devices (GCM limit)
             final int total = devices.size();
             final List<String> partialDevices = new ArrayList<>(total);
             int counter = 0;
@@ -62,8 +64,8 @@ public class PushServlet extends GCMBaseServlet {
                 counter++;
                 partialDevices.add(device.regId);
                 final int partialSize = partialDevices.size();
-                if (partialSize == GCMDatastore.MULTICAST_SIZE || counter == total) {
-                    final String multicastKey = GCMDatastore.createMulticast(partialDevices);
+                if (partialSize == MULTICAST_SIZE || counter == total) {
+                    final String multicastKey = Multicast.create(partialDevices);
                     logger.fine("Queuing " + partialSize + " devices on multicast " +
                             multicastKey);
                     final TaskOptions taskOptions = TaskOptions.Builder

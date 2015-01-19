@@ -33,10 +33,10 @@ import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
-import com.meiste.greg.ptwgame.GCMDatastore;
 import com.meiste.greg.ptwgame.StandingsCommon;
 import com.meiste.greg.ptwgame.entities.Device;
 import com.meiste.greg.ptwgame.entities.FriendLink;
+import com.meiste.greg.ptwgame.entities.Multicast;
 import com.meiste.greg.ptwgame.entities.Player;
 import com.meiste.greg.ptwgame.entities.RaceCorrectAnswers;
 
@@ -127,7 +127,7 @@ public class StandingsServlet extends HttpServlet {
         if (!deviceList.isEmpty()) {
             log.info("Sending sync GCM to " + deviceList.size() + " devices");
 
-            final String multicastKey = GCMDatastore.createMulticast(deviceList);
+            final String multicastKey = Multicast.create(deviceList);
             final TaskOptions taskOptions = TaskOptions.Builder
                     .withUrl("/tasks/send")
                     .param(SendMessageServlet.PARAMETER_MULTICAST, multicastKey)

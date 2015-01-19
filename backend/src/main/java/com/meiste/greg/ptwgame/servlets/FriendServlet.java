@@ -33,9 +33,9 @@ import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
 import com.meiste.greg.ptwgame.FriendRequest;
-import com.meiste.greg.ptwgame.GCMDatastore;
 import com.meiste.greg.ptwgame.entities.Device;
 import com.meiste.greg.ptwgame.entities.FriendLink;
+import com.meiste.greg.ptwgame.entities.Multicast;
 import com.meiste.greg.ptwgame.entities.Player;
 
 public class FriendServlet extends HttpServlet {
@@ -125,7 +125,7 @@ public class FriendServlet extends HttpServlet {
     private static void sendGcm(final List<String> deviceList) {
         logger.info("Sending sync GCM to " + deviceList.size() + " devices");
 
-        final String multicastKey = GCMDatastore.createMulticast(deviceList);
+        final String multicastKey = Multicast.create(deviceList);
         final TaskOptions taskOptions = TaskOptions.Builder
                 .withUrl("/tasks/send")
                 .param(SendMessageServlet.PARAMETER_MULTICAST, multicastKey)

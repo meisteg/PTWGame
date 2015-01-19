@@ -22,8 +22,8 @@ import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Result;
 import com.google.android.gcm.server.Sender;
 import com.meiste.greg.ptwgame.ApiKeyInitializer;
-import com.meiste.greg.ptwgame.GCMDatastore;
 import com.meiste.greg.ptwgame.entities.Device;
+import com.meiste.greg.ptwgame.entities.Multicast;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -119,7 +119,7 @@ public class SendMessageServlet extends GCMBaseServlet {
     private void sendMulticastMessage(final String multicastKey, final String collapseKey,
             final HttpServletResponse resp) {
         // Recover registration ids from datastore
-        final List<String> regIds = GCMDatastore.getMulticast(multicastKey);
+        final List<String> regIds = Multicast.getRegIds(multicastKey);
         final Message message = new Message.Builder().collapseKey(collapseKey).build();
         MulticastResult multicastResult;
         try {
@@ -161,7 +161,7 @@ public class SendMessageServlet extends GCMBaseServlet {
             }
             if (!retriableRegIds.isEmpty()) {
                 // update task
-                GCMDatastore.updateMulticast(multicastKey, retriableRegIds);
+                Multicast.update(multicastKey, retriableRegIds);
                 allDone = false;
                 retryTask(resp);
             }
@@ -174,8 +174,8 @@ public class SendMessageServlet extends GCMBaseServlet {
         }
     }
 
-    private void multicastDone(final HttpServletResponse resp, final String encodedKey) {
-        GCMDatastore.deleteMulticast(encodedKey);
+    private void multicastDone(final HttpServletResponse resp, final String multicastKey) {
+        Multicast.delete(multicastKey);
         taskDone(resp);
     }
 }
