@@ -17,6 +17,7 @@
 package com.meiste.greg.ptwgame.entities;
 
 import com.google.appengine.api.users.User;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -40,6 +41,7 @@ public class Device {
     public String regId;
     public String userId;
     public long timestamp;
+    public Ref<Player> playerRef;
 
     private static final Logger log = Logger.getLogger(Device.class.getName());
     private static final long DEVICE_REG_EXPIRATION = TimeUnit.DAYS.toMillis(180);
@@ -62,6 +64,7 @@ public class Device {
             if ((userId != null) && (!userId.isEmpty())) {
                 device.userId = userId;
             }
+            device.playerRef = Player.getByUser(user).getRef();
         }
         ofy().save().entity(device).now();
     }
@@ -88,6 +91,7 @@ public class Device {
 
     public static List<String> getRegIdsByPlayer(final Player player) {
         final List<String> regIds = new ArrayList<>();
+        // TODO: Remove userId and use playerRef once all records have been updated
         final Iterable<Device> devices = ofy().load().type(Device.class)
                 .filter("userId", player.mUserId).iterable();
         for (final Device device : devices) {
