@@ -16,40 +16,24 @@
  */
 package com.meiste.greg.ptwgame;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.FilterOperator;
-import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Transaction;
 
 public final class GCMDatastore {
 
     public static final int MULTICAST_SIZE = 1000;
 
-    private static final String DEVICE_TYPE = "Device";
-    private static final String DEVICE_REG_ID_PROPERTY = "regId";
-    private static final String DEVICE_USER_ID_PROPERTY = "userId";
-    private static final String DEVICE_TIMESTAMP_PROPERTY = "timestamp";
-    private static final long DEVICE_REG_EXPIRATION = TimeUnit.DAYS.toMillis(180);
-
     private static final String MULTICAST_TYPE = "Multicast";
     private static final String MULTICAST_REG_IDS_PROPERTY = "regIds";
-
-    private static final FetchOptions DEFAULT_FETCH_OPTIONS = FetchOptions.Builder
-            .withPrefetchSize(MULTICAST_SIZE).chunkSize(MULTICAST_SIZE);
 
     private static final Logger logger =
             Logger.getLogger(GCMDatastore.class.getName());
@@ -58,173 +42,6 @@ public final class GCMDatastore {
 
     private GCMDatastore() {
         throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Registers a device.
-     *
-     * @param regId device's registration id.
-     * @param userId current user's id.
-     */
-    public static synchronized void register(final String regId, final String userId) {
-        logger.info("Registering " + regId);
-        final Transaction txn = datastore.beginTransaction();
-        try {
-            Entity entity = findDeviceByRegId(regId);
-            if (entity != null) {
-                logger.info(regId + " is already registered.");
-            } else {
-                entity = new Entity(DEVICE_TYPE);
-                entity.setProperty(DEVICE_REG_ID_PROPERTY, regId);
-            }
-            if ((userId != null) && !userId.isEmpty()) {
-                entity.setProperty(DEVICE_USER_ID_PROPERTY, userId);
-            }
-            entity.setProperty(DEVICE_TIMESTAMP_PROPERTY, System.currentTimeMillis());
-            datastore.put(entity);
-            txn.commit();
-        } finally {
-            if (txn.isActive()) {
-                txn.rollback();
-            }
-        }
-    }
-
-    /**
-     * Unregisters a device.
-     *
-     * @param regId device's registration id.
-     */
-    public static synchronized void unregister(final String regId) {
-        logger.info("Unregistering " + regId);
-        final Transaction txn = datastore.beginTransaction();
-        try {
-            final Entity entity = findDeviceByRegId(regId);
-            if (entity == null) {
-                logger.warning("Device " + regId + " already unregistered");
-            } else {
-                final Key key = entity.getKey();
-                datastore.delete(key);
-            }
-            txn.commit();
-        } finally {
-            if (txn.isActive()) {
-                txn.rollback();
-            }
-        }
-    }
-
-    /**
-     * Updates the registration id of a device.
-     */
-    public static void updateRegistration(final String oldId, final String newId) {
-        logger.info("Updating " + oldId + " to " + newId);
-        unregister(oldId);
-        register(newId, null);
-    }
-
-    /**
-     * Gets all registered devices.
-     */
-    public static List<String> getDevices() {
-        List<String> devices;
-        final Transaction txn = datastore.beginTransaction();
-        try {
-            final Query query = new Query(DEVICE_TYPE);
-            final Iterable<Entity> entities =
-                    datastore.prepare(query).asIterable(DEFAULT_FETCH_OPTIONS);
-            devices = new ArrayList<>();
-            for (final Entity entity : entities) {
-                final String device = (String) entity.getProperty(DEVICE_REG_ID_PROPERTY);
-                devices.add(device);
-            }
-            txn.commit();
-        } finally {
-            if (txn.isActive()) {
-                txn.rollback();
-            }
-        }
-        return devices;
-    }
-
-    /**
-     * Gets all registered devices for a user.
-     */
-    public static List<String> getDevicesForUser(final String userId) {
-        final List<String> devices = new ArrayList<>();
-        final Transaction txn = datastore.beginTransaction();
-        try {
-            final Query query = new Query(DEVICE_TYPE)
-            .setFilter(new FilterPredicate(DEVICE_USER_ID_PROPERTY, FilterOperator.EQUAL, userId));
-            final Iterable<Entity> entities =
-                    datastore.prepare(query).asIterable(DEFAULT_FETCH_OPTIONS);
-            for (final Entity entity : entities) {
-                final String device = (String) entity.getProperty(DEVICE_REG_ID_PROPERTY);
-                devices.add(device);
-            }
-            txn.commit();
-        } finally {
-            if (txn.isActive()) {
-                txn.rollback();
-            }
-        }
-        return devices;
-    }
-
-    public static Entity findDeviceByRegId(final String regId) {
-        final Query query = new Query(DEVICE_TYPE)
-        .setFilter(new FilterPredicate(DEVICE_REG_ID_PROPERTY, FilterOperator.EQUAL, regId));
-        final PreparedQuery preparedQuery = datastore.prepare(query);
-        final List<Entity> entities = preparedQuery.asList(DEFAULT_FETCH_OPTIONS);
-        Entity entity = null;
-        if (!entities.isEmpty()) {
-            entity = entities.get(0);
-        }
-        final int size = entities.size();
-        if (size > 1) {
-            logger.severe(
-                    "Found " + size + " entities for regId " + regId + ": " + entities);
-        }
-        return entity;
-    }
-
-    /**
-     * Clean up old registered devices.
-     * 
-     * @param commit Flag indicating whether to commit the cleanup to the datastore
-     * 
-     * @return List of device registration IDs cleaned up
-     */
-    public static List<String> cleanupDevices(final boolean commit) {
-        final List<String> devices = new ArrayList<>();
-        final long expiration = System.currentTimeMillis() - DEVICE_REG_EXPIRATION;
-
-        logger.info("Cleaning up registrations older than " + expiration +
-                ". commit=" + commit);
-
-        final Transaction txn = datastore.beginTransaction();
-        try {
-            final Query query = new Query(DEVICE_TYPE)
-            .setFilter(new FilterPredicate(DEVICE_TIMESTAMP_PROPERTY, FilterOperator.LESS_THAN, expiration));
-            final Iterable<Entity> entities =
-                    datastore.prepare(query).asIterable(DEFAULT_FETCH_OPTIONS);
-            for (final Entity entity : entities) {
-                devices.add((String) entity.getProperty(DEVICE_REG_ID_PROPERTY));
-            }
-            txn.commit();
-        } finally {
-            if (txn.isActive()) {
-                txn.rollback();
-            }
-        }
-
-        if (commit) {
-            for (final String regId : devices) {
-                unregister(regId);
-            }
-        }
-
-        return devices;
     }
 
     /**
@@ -267,9 +84,8 @@ public final class GCMDatastore {
         try {
             entity = datastore.get(key);
             @SuppressWarnings("unchecked")
-            final
-            List<String> devices =
-            (List<String>) entity.getProperty(MULTICAST_REG_IDS_PROPERTY);
+            final List<String> devices =
+                    (List<String>) entity.getProperty(MULTICAST_REG_IDS_PROPERTY);
             txn.commit();
             return devices;
         } catch (final EntityNotFoundException e) {

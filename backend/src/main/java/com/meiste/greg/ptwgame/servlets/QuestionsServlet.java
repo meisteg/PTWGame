@@ -31,6 +31,7 @@ import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.meiste.greg.ptwgame.GCMDatastore;
+import com.meiste.greg.ptwgame.entities.Device;
 import com.meiste.greg.ptwgame.entities.Player;
 import com.meiste.greg.ptwgame.entities.Race;
 import com.meiste.greg.ptwgame.entities.RaceAnswers;
@@ -82,7 +83,7 @@ public class QuestionsServlet extends HttpServlet {
                     a.setPlayer(player);
                     a.setRace(race);
                     RaceAnswers.put(a);
-                    sendGcm(user.getUserId());
+                    sendGcm(player);
                 }
 
                 resp.setContentType("text/plain");
@@ -95,8 +96,8 @@ public class QuestionsServlet extends HttpServlet {
         }
     }
 
-    private void sendGcm(final String userId) {
-        final List<String> deviceList = GCMDatastore.getDevicesForUser(userId);
+    private void sendGcm(final Player player) {
+        final List<String> deviceList = Device.getRegIdsByPlayer(player);
 
         // If just one device, don't need to ping it. The device already is aware
         // of the situation. Only need to ping when where are multiple devices.

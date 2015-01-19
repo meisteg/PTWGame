@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
-import com.meiste.greg.ptwgame.GCMDatastore;
+import com.meiste.greg.ptwgame.entities.Device;
 
 /**
  * Servlet that registers a device, whose registration id is identified by
@@ -39,7 +39,7 @@ public class RegisterServlet extends GCMBaseServlet {
         final String regId = getParameter(req, PARAMETER_REG_ID);
         final UserService userService = UserServiceFactory.getUserService();
         final User user = userService.getCurrentUser();
-        GCMDatastore.register(regId, (user != null ? user.getUserId() : null));
+        Device.register(regId, user);
         setSuccess(resp);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2014 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright (C) 2013-2015 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.meiste.greg.ptwgame.servlets;
 
-import com.meiste.greg.ptwgame.GCMDatastore;
+import com.meiste.greg.ptwgame.entities.Device;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,7 +41,7 @@ public class DeviceCleanupServlet extends HttpServlet {
     @Override
     public void doGet(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException {
-        final List<String> devices = GCMDatastore.cleanupDevices(true);
+        final List<String> devices = Device.cleanOld();
         final StringBuilder sb = new StringBuilder();
         for (final String device : devices) {
             sb.append(device).append("\n\n");

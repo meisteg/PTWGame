@@ -35,6 +35,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
 import com.meiste.greg.ptwgame.GCMDatastore;
 import com.meiste.greg.ptwgame.StandingsCommon;
+import com.meiste.greg.ptwgame.entities.Device;
 import com.meiste.greg.ptwgame.entities.FriendLink;
 import com.meiste.greg.ptwgame.entities.Player;
 import com.meiste.greg.ptwgame.entities.RaceCorrectAnswers;
@@ -110,7 +111,7 @@ public class StandingsServlet extends HttpServlet {
     }
 
     private void sendGcm(final Player player) {
-        final List<String> deviceList = GCMDatastore.getDevicesForUser(player.mUserId);
+        final List<String> deviceList = Device.getRegIdsByPlayer(player);
         if (deviceList.size() == 1) {
             // If just one device, don't need to ping it. The device already is aware
             // of the situation. Only need to ping when where are multiple devices.
@@ -120,7 +121,7 @@ public class StandingsServlet extends HttpServlet {
         // Also send sync GCM to players who are friends with this player
         final List<FriendLink> fLinks = FriendLink.getByFriend(player);
         for (final FriendLink fLink : fLinks) {
-            deviceList.addAll(GCMDatastore.getDevicesForUser(fLink.getPlayer().mUserId));
+            deviceList.addAll(Device.getRegIdsByPlayer(fLink.getPlayer()));
         }
 
         if (!deviceList.isEmpty()) {

@@ -34,6 +34,7 @@ import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
 import com.meiste.greg.ptwgame.FriendRequest;
 import com.meiste.greg.ptwgame.GCMDatastore;
+import com.meiste.greg.ptwgame.entities.Device;
 import com.meiste.greg.ptwgame.entities.FriendLink;
 import com.meiste.greg.ptwgame.entities.Player;
 
@@ -80,21 +81,21 @@ public class FriendServlet extends HttpServlet {
         if (fReq.player.friend) {
             if (fLinkDB == null) {
                 FriendLink.put(new FriendLink(self, other));
-                deviceList.addAll(getUserDevices(user.getUserId()));
+                deviceList.addAll(getUserDevices(self));
             }
             // If GCM registration ID present, it indicates friend request
             // is the result of NFC. Need to friend in reverse as well, then
             // notify other player.
-            if ((fReq.gcmRegId != null) && (GCMDatastore.findDeviceByRegId(fReq.gcmRegId) != null)) {
+            if ((fReq.gcmRegId != null) && (Device.getByRegId(fReq.gcmRegId) != null)) {
                 fLinkDB = FriendLink.get(other, self);
                 if (fLinkDB == null) {
                     FriendLink.put(new FriendLink(other, self));
-                    deviceList.addAll(getFriendDevices(other.mUserId, fReq.gcmRegId));
+                    deviceList.addAll(getFriendDevices(other, fReq.gcmRegId));
                 }
             }
         } else if (fLinkDB != null) {
             FriendLink.del(fLinkDB);
-            deviceList.addAll(getUserDevices(user.getUserId()));
+            deviceList.addAll(getUserDevices(self));
         }
 
         if (!deviceList.isEmpty()) {
@@ -102,8 +103,8 @@ public class FriendServlet extends HttpServlet {
         }
     }
 
-    private static List<String> getUserDevices(final String userId) {
-        final List<String> deviceList = GCMDatastore.getDevicesForUser(userId);
+    private static List<String> getUserDevices(final Player player) {
+        final List<String> deviceList = Device.getRegIdsByPlayer(player);
         if (deviceList.size() == 1) {
             // If just one device, don't need to ping it. The device already is aware
             // of the situation. Only need to ping when where are multiple devices.
@@ -112,15 +113,11 @@ public class FriendServlet extends HttpServlet {
         return deviceList;
     }
 
-    private static List<String> getFriendDevices(final String userId, final String regId) {
-        final List<String> deviceList = GCMDatastore.getDevicesForUser(userId);
+    private static List<String> getFriendDevices(final Player player, final String regId) {
+        final List<String> deviceList = Device.getRegIdsByPlayer(player);
         if (!deviceList.contains(regId)) {
+            // This should not happen anymore, but leaving just in case.
             deviceList.add(regId);
-
-            // Don't attempt to fix by registering here. The friend may not be
-            // running latest version of the app, so it may not support all the
-            // new GCM messages.
-            //GCMDatastore.register(regId, userId);
         }
         return deviceList;
     }

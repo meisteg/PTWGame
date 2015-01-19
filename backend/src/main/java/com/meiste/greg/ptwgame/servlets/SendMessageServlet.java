@@ -1,6 +1,6 @@
 /*
  * Copyright 2012 Google Inc.
- * Copyright 2012-2014 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright 2012-2015 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -23,6 +23,7 @@ import com.google.android.gcm.server.Result;
 import com.google.android.gcm.server.Sender;
 import com.meiste.greg.ptwgame.ApiKeyInitializer;
 import com.meiste.greg.ptwgame.GCMDatastore;
+import com.meiste.greg.ptwgame.entities.Device;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -136,7 +137,7 @@ public class SendMessageServlet extends GCMBaseServlet {
                 final String canonicalRegId = results.get(i).getCanonicalRegistrationId();
                 if (canonicalRegId != null) {
                     final String regId = regIds.get(i);
-                    GCMDatastore.updateRegistration(regId, canonicalRegId);
+                    Device.updateRegistration(regId, canonicalRegId);
                 }
             }
         }
@@ -151,7 +152,7 @@ public class SendMessageServlet extends GCMBaseServlet {
                     logger.warning("Got error (" + error + ") for regId " + regId);
                     if (error.equals(Constants.ERROR_NOT_REGISTERED)) {
                         // application has been removed from device - unregister it
-                        GCMDatastore.unregister(regId);
+                        Device.unregister(regId);
                     }
                     if (error.equals(Constants.ERROR_UNAVAILABLE)) {
                         retriableRegIds.add(regId);

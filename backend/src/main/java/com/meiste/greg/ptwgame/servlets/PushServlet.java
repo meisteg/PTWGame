@@ -1,6 +1,6 @@
 /*
  * Copyright 2012 Google Inc.
- * Copyright 2012, 2014 Gregory S. Meiste  <http://gregmeiste.com>
+ * Copyright 2012, 2014-2015 Gregory S. Meiste  <http://gregmeiste.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -29,6 +29,7 @@ import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.meiste.greg.ptwgame.GCMDatastore;
+import com.meiste.greg.ptwgame.entities.Device;
 
 /**
  * Servlet that adds a new message to all registered devices.
@@ -44,7 +45,7 @@ public class PushServlet extends GCMBaseServlet {
             throws IOException, ServletException {
         final String msgType = getParameter(req, PARAMETER_MSG_TYPE,
                 SendMessageServlet.MSG_TYPE_SYNC);
-        final List<String> devices = GCMDatastore.getDevices();
+        final List<Device> devices = Device.getDevices();
         String status;
 
         if (devices.isEmpty()) {
@@ -57,9 +58,9 @@ public class PushServlet extends GCMBaseServlet {
             final List<String> partialDevices = new ArrayList<>(total);
             int counter = 0;
             int tasks = 0;
-            for (final String device : devices) {
+            for (final Device device : devices) {
                 counter++;
-                partialDevices.add(device);
+                partialDevices.add(device.regId);
                 final int partialSize = partialDevices.size();
                 if (partialSize == GCMDatastore.MULTICAST_SIZE || counter == total) {
                     final String multicastKey = GCMDatastore.createMulticast(partialDevices);
