@@ -28,6 +28,7 @@ import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import static com.meiste.greg.ptwgame.OfyService.ofy;
 
@@ -35,6 +36,8 @@ import static com.meiste.greg.ptwgame.OfyService.ofy;
 @Index
 @Cache
 public class Player {
+    private static final Logger log = Logger.getLogger(Player.class.getName());
+
     @SuppressWarnings("unused")
     @Id
     private Long id;
@@ -65,8 +68,14 @@ public class Player {
     @Ignore
     public boolean inChase;
 
-    public static Player getByUser(final User user) {
-        return getByProperty("mUserId", user.getUserId());
+    public static synchronized Player getByUser(final User user) {
+        Player player = getByProperty("mUserId", user.getUserId());
+        if (player == null) {
+            log.info("User " + user + " not found. Creating player...");
+            player = new Player(user);
+            Player.put(player, true);
+        }
+        return player;
     }
 
     public static Player getByRank(final int rank) {

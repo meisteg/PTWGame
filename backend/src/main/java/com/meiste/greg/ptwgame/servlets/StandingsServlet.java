@@ -65,46 +65,43 @@ public class StandingsServlet extends HttpServlet {
 
         if (user != null) {
             final Player self = Player.getByUser(user);
-            if (self != null) {
-                final String json = req.getReader().readLine();
-                String newName = null;
+            final String json = req.getReader().readLine();
+            String newName = null;
 
-                if (json != null)
-                    newName = new Gson().fromJson(json, String.class);
+            if (json != null)
+                newName = new Gson().fromJson(json, String.class);
 
-                // Limit the input to 5-20 characters. Done here in addition to the
-                // app because someone can and will try to submit without the app.
-                if (newName != null)
-                    newName = newName.substring(0, Math.min(20, newName.length()));
-                if ((newName != null) && (newName.length() < 5))
-                    newName = self.name;
+            // Limit the input to 5-20 characters. Done here in addition to the
+            // app because someone can and will try to submit without the app.
+            if (newName != null)
+                newName = newName.substring(0, Math.min(20, newName.length()));
+            if ((newName != null) && (newName.length() < 5))
+                newName = self.name;
 
-                if (newName != null) {
-                    // No special characters allowed
-                    for (int i = 0; i < newName.length(); i++) {
-                        if (!Character.isLetterOrDigit(newName.charAt(i))) {
-                            newName = self.name;
-                            break;
-                        }
-                    }
-                }
-
-                if (newName != null) {
-                    // Verify name not taken by someone else
-                    final Player other = Player.getByName(newName);
-                    if ((other != null) && !other.mUserId.equals(self.mUserId)) {
+            if (newName != null) {
+                // No special characters allowed
+                for (int i = 0; i < newName.length(); i++) {
+                    if (!Character.isLetterOrDigit(newName.charAt(i))) {
                         newName = self.name;
+                        break;
                     }
                 }
+            }
 
-                self.name = newName;
-                Player.put(self, true);
-                log.info(user.getEmail() + " changed player name to " + newName);
-                sendGcm(self);
+            if (newName != null) {
+                // Verify name not taken by someone else
+                final Player other = Player.getByName(newName);
+                if ((other != null) && !other.mUserId.equals(self.mUserId)) {
+                    newName = self.name;
+                }
+            }
 
-                doGet(req, resp);
-            } else
-                resp.sendError(405);
+            self.name = newName;
+            Player.put(self, true);
+            log.info(user.getEmail() + " changed player name to " + newName);
+            sendGcm(self);
+
+            doGet(req, resp);
         } else {
             resp.sendRedirect(userService.createLoginURL(req.getRequestURI()));
         }
@@ -155,11 +152,6 @@ public class StandingsServlet extends HttpServlet {
             }
 
             self = Player.getByUser(user);
-            if (self == null) {
-                log.info("User " + user + " not found in standings. Creating player...");
-                self = new Player(user);
-                Player.put(self, true);
-            }
 
             int numToShow;
             if (race_id >= StandingsCommon.RACE_ID_CHASE_START) {

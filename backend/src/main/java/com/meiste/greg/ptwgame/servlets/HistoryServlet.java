@@ -59,13 +59,11 @@ public class HistoryServlet extends HttpServlet {
 
         PlayerHistory(final User user) {
             final Player player = Player.getByUser(user);
-            if (player != null) {
-                answers = RaceAnswers.getAllForUser(player);
-                if ((answers != null) && (answers.size() > 0)) {
-                    for (final RaceAnswers a : answers) {
-                        ids.add(a.getRace().raceId);
-                        questions.add(RaceQuestions.get(a.getRace()));
-                    }
+            answers = RaceAnswers.getAllForUser(player);
+            if ((answers != null) && (answers.size() > 0)) {
+                for (final RaceAnswers a : answers) {
+                    ids.add(a.getRace().raceId);
+                    questions.add(RaceQuestions.get(a.getRace()));
                 }
             }
         }
