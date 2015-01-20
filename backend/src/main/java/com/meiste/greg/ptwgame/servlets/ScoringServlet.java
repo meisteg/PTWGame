@@ -65,6 +65,12 @@ public class ScoringServlet extends HttpServlet {
             break;
         }
 
+        int numCorrect1 = 0;
+        int numCorrect2 = 0;
+        int numCorrect3 = 0;
+        int numCorrect4 = 0;
+        int numCorrect5 = 0;
+
         final List<RaceAnswers> submissions = RaceAnswers.getAllForRace(race);
         for (final RaceAnswers a : submissions) {
             final Player player = a.getPlayer();
@@ -72,19 +78,31 @@ public class ScoringServlet extends HttpServlet {
             if (a.a1.equals(answers.a1)) {
                 player.wins++;
                 player.points += 100;
+                numCorrect1++;
             }
-            if (a.a2.equals(answers.a2))
+            if (a.a2.equals(answers.a2)) {
                 player.points += 50;
-            if (a.a3.equals(answers.a3))
+                numCorrect2++;
+            }
+            if (a.a3.equals(answers.a3)) {
                 player.points += 35;
-            if (a.a4.equals(answers.a4))
+                numCorrect3++;
+            }
+            if (a.a4.equals(answers.a4)) {
                 player.points += 10;
-            if (a.a5.equals(answers.a5))
+                numCorrect4++;
+            }
+            if (a.a5.equals(answers.a5)) {
                 player.points += 5;
+                numCorrect5++;
+            }
 
             player.races++;
             Player.put(player, true);
         }
+
+        log.info(String.format("Total=%d Q1=%d Q2=%d Q3=%d Q4=%d Q5=%d", submissions.size(),
+                numCorrect1, numCorrect2, numCorrect3, numCorrect4, numCorrect5));
 
         // Queries across multiple entity groups (non-ancestor queries) can only guarantee
         // eventually consistent results. However, the limit to writing to the same entity group
