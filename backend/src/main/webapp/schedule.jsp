@@ -17,12 +17,15 @@
 <html>
     <head>
         <title>Pick The Winner Schedule</title>
-        <style>
+        <link href='http://fonts.googleapis.com/css?family=Roboto:400,300' rel='stylesheet' type='text/css'>
+        <style type='text/css'>
             body {
+                font-family: 'Roboto', sans-serif;
                 color: #FFFFFF;
                 background-color: #004D40;
             }
             h1, h2 {
+                font-weight: 300;
                 text-align: center;
             }
             a {

@@ -12,10 +12,11 @@
 <html>
   <head>
     <title>Pick The Winner Administration</title>
+    <link href='http://fonts.googleapis.com/css?family=Roboto:400,300' rel='stylesheet' type='text/css'>
     <link href="css/multi-select.css" media="screen" rel="stylesheet" type="text/css">
     <link href="css/admin.css" media="screen" rel="stylesheet" type="text/css">
   </head>
-  <body bgcolor="#BBBBBB">
+  <body>
     <h1>Pick The Winner Administration</h1>
     
     <% final UserService userService = UserServiceFactory.getUserService(); %>
